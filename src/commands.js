@@ -12,7 +12,8 @@ JSterminal.register("s", {
   options: {
     "-d": {
       argument: true,
-      description: "top level domain to use (e.g. 'com', 'de' or 'it'). Default is 'com'."
+      description: "top level domain to use (e.g. 'com', 'de' or 'it'). Default is 'com'.",
+      alias: "--domain"
     }
   },
   description: "search on Google",
@@ -34,7 +35,8 @@ JSterminal.register("w", {
   options: {
     "-l": {
       argument: true,
-      description: "language code (e.g. 'en' or 'it')"
+      description: "language code (e.g. 'en' or 'it')",
+      alias: "--language"
     }
   },
   description: "search on Wikipedia",
