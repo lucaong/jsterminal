@@ -97,7 +97,7 @@ JSterminal.register("help", {
               var option_names = !!JSterminal.commands[argv[i]].options[j].alias ?
                 [j, JSterminal.commands[argv[i]].options[j].alias] :
                 [j];
-              JSterminal.io.puts("    " + option_names.join(", ") + " : " + (JSterminal.commands[argv[i]].options[j].description || "no description"));
+              JSterminal.io.puts("    " + option_names.join(", ") + "\n      " + (JSterminal.commands[argv[i]].options[j].description || "no description") + "\n");
             }
           }
         } else {
