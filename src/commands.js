@@ -9,10 +9,17 @@ JSterminal.register("tweet", {
 });
 
 JSterminal.register("s", {
+  options: {
+    "-d": {
+      argument: true,
+      description: "top level domain to use (e.g. 'com', 'de' or 'it'). Default is 'com'.",
+      alias: "--domain"
+    }
+  },
   description: "search on Google",
   help: "it searches the string passed as argument on Google\nSynopsis:\n  s SEARCH_QUERY",
-  execute: function(argv){
-    window.open("http://www.google.com/search?q="+argv.join("+"));
+  execute: function(argv, options){
+    window.open("http://www.google."+(options["-d"] || "com")+"/search?q="+argv.join("+"));
   }
 });
 
@@ -28,7 +35,8 @@ JSterminal.register("w", {
   options: {
     "-l": {
       argument: true,
-      description: "language (e.g. 'en' or 'it')"
+      description: "language code (e.g. 'en' or 'it')",
+      alias: "--language"
     }
   },
   description: "search on Wikipedia",
