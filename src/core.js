@@ -1,4 +1,11 @@
-// CORE
+/*!
+ * JSterminal
+ *
+ * Copyright 2011, Luca Ongaro
+ * Licensed under the MIT license.
+ *
+ */
+
 
 var JSterminal = (function() {
   var registered_commands = {};
