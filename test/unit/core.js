@@ -61,7 +61,7 @@ $(document).ready(function(){
     equals(countCommands(), initialNumOfCommands + 2,
       "after registration of two new commands, there should be two more commands");
   });
-  
+
   test("access to command arguments and options", function() {
     JSterminal.interpret("testcommand testarg -n 123 -o testarg2 --alias 321");
     ok(testValue.arguments[0] == "testarg" && testValue.arguments[1] == "testarg2",
@@ -87,19 +87,6 @@ $(document).ready(function(){
     
     equals($("#out").html(), "testinput",
       "command should be able to print output calling JSterminal.io.puts()");
-    
-    JSterminal.io.flush();
-    JSterminal.interpret("help testcommand_no_options");
-    equals($("#out").html(), "testcommand_no_options:\n  this is a help text",
-      "the 'help' command should provide help on command, if a 'help' property was provided");
-    
-    JSterminal.io.flush();
-    JSterminal.interpret("help testcommand");
-    equals($("#out:contains('test option description')").length, 1,
-      "the 'help' command should provide a description of options, if available");
-      
-    equals($("#out:contains('-a, --alias')").length, 1,
-      "the 'help' command should list options with their aliases");
   });
 
   test("handling non-existent commands", function(){
@@ -129,6 +116,21 @@ $(document).ready(function(){
     JSterminal.interpret('testcommand \'oye "como" va\'');
     equals(testValue.arguments[0], 'oye "como" va',
       "double quotes inside single quotes should not be a problem");
+  });
+
+  test("'help' command", function() {
+    JSterminal.io.flush();
+    JSterminal.interpret("help testcommand_no_options");
+    equals($("#out").html(), "testcommand_no_options:\n  this is a help text",
+      "the 'help' command should provide help on command, if a 'help' property was provided");
+    
+    JSterminal.io.flush();
+    JSterminal.interpret("help testcommand");
+    equals($("#out:contains('test option description')").length, 1,
+      "the 'help' command should provide a description of options, if available");
+      
+    equals($("#out:contains('-a, --alias')").length, 1,
+      "the 'help' command should list options with their aliases");
   });
 
 });
