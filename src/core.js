@@ -7,6 +7,16 @@ var JSterminal = (function() {
     // Function register(command, obj): register a command
     register: function(command, obj){
       registered_commands[command] = obj;
+      
+      // Manage options aliases
+      if (!!obj.options) {
+        registered_commands[command].optionAliases = registered_commands[command].optionAliases || {};
+        for(var i in obj.options) {
+          if (!!obj.options[i].alias) {
+            registered_commands[command].optionAliases[obj.options[i].alias] = i;
+          }
+        }
+      }
     },
     // Function interpret(input_string): interpret input
     interpret: function(input_string){
@@ -17,9 +27,13 @@ var JSterminal = (function() {
       
       // Parse options and arguments
       for(i = 0; i < input_array.length; i++) {
-        var opt = (!!registered_commands[command_name] && !!registered_commands[command_name].options) ? registered_commands[command_name].options[input_array[i]] : false;
+        var opt = (!!registered_commands[command_name] && !!registered_commands[command_name].options) ? 
+          (registered_commands[command_name].options[input_array[i]] || registered_commands[command_name].options[registered_commands[command_name].optionAliases[input_array[i]]]) :
+            false;
         if (!!opt) {
-          options[input_array.splice(i, 1)[0]] = !!opt.argument ? input_array.splice(i, 1)[0] : true;
+          var opt_name = input_array.splice(i, 1)[0];
+          opt_name = !!registered_commands[command_name].options[opt_name] ? opt_name : registered_commands[command_name].optionAliases[opt_name];
+          options[opt_name] = !!opt.argument ? input_array.splice(i, 1)[0] : true;
           i--;
         } else {
           input_array[i] = input_array[i].replace(/^["']|["']$/g, "");
@@ -80,7 +94,10 @@ JSterminal.register("help", {
           if(!!JSterminal.commands[argv[i]].options) {
             JSterminal.io.puts("\n  OPTIONS:");
             for(var j in JSterminal.commands[argv[i]].options) {
-              JSterminal.io.puts("    " + j + " : " + (JSterminal.commands[argv[i]].options[j].description || "no description"));
+              var option_names = !!JSterminal.commands[argv[i]].options[j].alias ?
+                [j, JSterminal.commands[argv[i]].options[j].alias] :
+                [j];
+              JSterminal.io.puts("    " + option_names.join(", ") + " : " + (JSterminal.commands[argv[i]].options[j].description || "no description"));
             }
           }
         } else {
