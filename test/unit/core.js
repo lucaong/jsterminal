@@ -17,10 +17,15 @@ $(document).ready(function(){
     help: "this is a help text",
     options: {
       "-n": {
-        argument: true
+        argument: true,
+        description: "test option description"
       },
       "-o": {
         argument: false
+      },
+      "-a": {
+        argument: true,
+        alias: "--alias"
       }
     },
     execute: function(argv, options){
@@ -58,12 +63,15 @@ $(document).ready(function(){
   });
   
   test("access to command arguments and options", function() {
-    JSterminal.interpret("testcommand testarg -n 123 -o testarg2");
+    JSterminal.interpret("testcommand testarg -n 123 -o testarg2 --alias 321");
     ok(testValue.arguments[0] == "testarg" && testValue.arguments[1] == "testarg2",
       "execute() should access the array of arguments");
       
     equals(testValue.options["-n"], "123",
       "execute() should access options with argument");
+    
+    equals(testValue.options["-a"], "321",
+      "options can be aliased");
       
     ok(testValue.options["-o"],
       "execute() should access options without argument");
@@ -84,6 +92,14 @@ $(document).ready(function(){
     JSterminal.interpret("help testcommand_no_options");
     equals($("#out").html(), "testcommand_no_options:\n  this is a help text",
       "the 'help' command should provide help on command, if a 'help' property was provided");
+    
+    JSterminal.io.flush();
+    JSterminal.interpret("help testcommand");
+    equals($("#out:contains('test option description')").length, 1,
+      "the 'help' command should provide a description of options, if available");
+      
+    equals($("#out:contains('-a, --alias')").length, 1,
+      "the 'help' command should list options with their aliases");
   });
 
   test("handling non-existent commands", function(){
