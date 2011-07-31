@@ -117,3 +117,26 @@ JSterminal.register("gmail", {
     window.open("https://mail.google.com/mail/?view=cm&tf=1&to=" + (argv[0] || "") + "&cc=&su=" + (argv[1] || document.title) + "&body=" + location.href + "&fs=1",'_blank','location=yes,menubar=yes,resizable=yes,width=800,height=600');
   }
 });
+
+JSterminal.register("css", {
+  description: "CSS console to add/edit page style",
+  help: "it opens a CSS console, making it possible to add CSS directive to the current page. Enter 'quit' or 'q' to quit the console.",
+  execute: function(argv){
+    var $cssConsole = JSterminal.commands["css"];
+    $cssConsole.cache = $cssConsole.cache || "";
+    $cssConsole.addStyle = function(css) {
+      if (css != 'q' && css != 'quit' &&css != 'Q') {
+        JSterminal.io.puts(css);
+        $cssConsole.cache += " "+css;
+        if(jQuery("style#css-console").length == 0) {
+          jQuery(document.head).append("<style type='text/css' id='css-console'></style>");
+        }
+        jQuery("style#css-console").html($cssConsole.cache);
+        JSterminal.io.gets($cssConsole.addStyle);
+      } else {
+        JSterminal.io.puts("CSS console closed\n");
+      }
+    }
+    JSterminal.io.gets($cssConsole.addStyle);
+  }
+});
