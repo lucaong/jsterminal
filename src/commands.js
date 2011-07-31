@@ -125,7 +125,7 @@ JSterminal.register("css", {
     var $cssConsole = JSterminal.commands["css"];
     $cssConsole.cache = $cssConsole.cache || "";
     $cssConsole.addStyle = function(css) {
-      if (css != 'q' && css != 'quit' &&css != 'Q') {
+      if (css != 'q' && css != 'quit' && css != 'Q') {
         JSterminal.io.puts(css);
         $cssConsole.cache += " "+css;
         if(jQuery("style#css-console").length == 0) {
@@ -138,5 +138,28 @@ JSterminal.register("css", {
       }
     }
     JSterminal.io.gets($cssConsole.addStyle);
+  }
+});
+
+JSterminal.register("js", {
+  description: "JavaScript console",
+  help: "it opens an interactive JavaScript console. Enter 'quit' or 'q' to quit the console.",
+  execute: function(argv){
+    var $jsConsole = this;
+    $jsConsole.interpretJS = function(js) {
+      if (js != 'q' && js != 'quit' && js != 'Q') {
+        JSterminal.io.puts(js);
+        try {
+          var r = (1,eval)(js);
+          JSterminal.io.puts(typeof r == "number" ? r : (typeof r == "string" ? '"'+r+'"' : '"'+ typeof r +'"'));
+        } catch(err) {
+          JSterminal.io.puts(err);
+        }
+        JSterminal.io.gets($jsConsole.interpretJS);
+      } else {
+        JSterminal.io.puts("JavaScript console closed\n");
+      }
+    }
+    JSterminal.io.gets($jsConsole.interpretJS);
   }
 });
