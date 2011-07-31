@@ -52,7 +52,7 @@ var JSterminal = (function() {
         return registered_commands[command_name].execute(input_array, options);
       } else {
         JSterminal.io.puts("unknown command " + command_name);
-        JSterminal.io.puts("type 'help' for a list of avaiable commands");
+        JSterminal.io.puts("type 'help' for a list of available commands");
         return false;
       }
     },

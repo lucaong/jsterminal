@@ -10,11 +10,8 @@ JSterminal.io.puts = function(out){
   jQuery("#JSterminal_in").focus();
 };
 JSterminal.io.gets = function(callback){
-  JSterminal.io.inputMode = 1;
-  JSterminal.io.getsCallback = function(s) {
-    callback(s);
-    JSterminal.io.inputMode = 0;
-  }
+  JSterminal.io.inputMode++;
+  JSterminal.io.getsCallback = callback;
 };
 JSterminal.io.inputs = [];
 JSterminal.io.input_cursor = -1;
@@ -24,15 +21,15 @@ JSterminal.io.keyPressed = function(e) {
   var keycode = e.keyCode || e.which;
   if(keycode === 13) {
     var i = jQuery("#JSterminal_in").val();
-    if (JSterminal.io.inputMode == 0) {
-      jQuery("#JSterminal_in").val("");
+    jQuery("#JSterminal_in").val("");
+    if (JSterminal.io.inputMode <= 0) {
       JSterminal.io.puts(i);
       JSterminal.io.inputs.unshift(i);
       JSterminal.io.input_cursor = -1;
       JSterminal.interpret(i);
     } else {
-      jQuery("#JSterminal_in").val("");
       JSterminal.io.getsCallback(i);
+      JSterminal.io.inputMode--;
     }
   } else if (keycode === 27) {
     JSterminal.quit();
