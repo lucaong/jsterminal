@@ -150,7 +150,8 @@ JSterminal.register("js", {
       if (js != 'q' && js != 'quit' && js != 'Q') {
         JSterminal.io.puts(js);
         try {
-          var r = (1,eval)(js);
+          var gEval = window.execScript || eval;
+          var r = gEval(js);
           JSterminal.io.puts(typeof r == "number" ? r : (typeof r == "string" ? '"'+r+'"' : '"'+ typeof r +'"'));
         } catch(err) {
           JSterminal.io.puts(err);
