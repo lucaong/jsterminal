@@ -146,12 +146,32 @@ JSterminal.register("js", {
   help: "it opens an interactive JavaScript console. Enter 'quit' or 'q' to quit the console.",
   execute: function(argv){
     var $jsConsole = this;
+    $jsConsole.globalEval = (function() {
+      // globalEval code by by kangax http://perfectionkills.com/global-eval-what-are-the-options/
+      var isIndirectEvalGlobal = (function(original, Object) {
+        try {
+          return (1,eval)('Object') === original;
+        }
+        catch(err) {
+          return false;
+        }
+      })(Object, 123);
+      if (isIndirectEvalGlobal) {
+        return function(expression) {
+          return (1,eval)(expression);
+        };
+      }
+      else if (typeof window.execScript !== 'undefined') {
+        return function(expression) {
+          return window.execScript(expression);
+        };
+      }
+    })();
     $jsConsole.interpretJS = function(js) {
       if (js != 'q' && js != 'quit' && js != 'Q') {
         JSterminal.io.puts(js);
         try {
-          var gEval = window.execScript || eval;
-          var r = gEval(js);
+          var r = $jsConsole.globalEval(js);
           JSterminal.io.puts(typeof r == "number" ? r : (typeof r == "string" ? '"'+r+'"' : '"'+ typeof r +'"'));
         } catch(err) {
           JSterminal.io.puts(err);
