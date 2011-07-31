@@ -129,7 +129,7 @@ JSterminal.register("css", {
         JSterminal.io.puts(css);
         $cssConsole.cache += " "+css;
         if(jQuery("style#css-console").length == 0) {
-          jQuery(document.head).append("<style type='text/css' id='css-console'></style>");
+          jQuery(document.body).append("<style type='text/css' id='css-console'></style>");
         }
         jQuery("style#css-console").html($cssConsole.cache);
         JSterminal.io.gets($cssConsole.addStyle);
