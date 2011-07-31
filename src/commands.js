@@ -117,3 +117,70 @@ JSterminal.register("gmail", {
     window.open("https://mail.google.com/mail/?view=cm&tf=1&to=" + (argv[0] || "") + "&cc=&su=" + (argv[1] || document.title) + "&body=" + location.href + "&fs=1",'_blank','location=yes,menubar=yes,resizable=yes,width=800,height=600');
   }
 });
+
+JSterminal.register("css", {
+  description: "CSS console to add/edit page style",
+  help: "it opens a CSS console, making it possible to add CSS directive to the current page. Enter 'quit' or 'q' to quit the console.",
+  execute: function(argv){
+    var $cssConsole = JSterminal.commands["css"];
+    $cssConsole.cache = $cssConsole.cache || "";
+    $cssConsole.addStyle = function(css) {
+      if (css != 'q' && css != 'quit' && css != 'Q') {
+        JSterminal.io.puts(css);
+        $cssConsole.cache += " "+css;
+        if(jQuery("style#css-console").length == 0) {
+          jQuery(document.body).append("<style type='text/css' id='css-console'></style>");
+        }
+        jQuery("style#css-console").html($cssConsole.cache);
+        JSterminal.io.gets($cssConsole.addStyle);
+      } else {
+        JSterminal.io.puts("CSS console closed\n");
+      }
+    }
+    JSterminal.io.gets($cssConsole.addStyle);
+  }
+});
+
+JSterminal.register("js", {
+  description: "JavaScript console",
+  help: "it opens an interactive JavaScript console. Enter 'quit' or 'q' to quit the console.",
+  execute: function(argv){
+    var $jsConsole = this;
+    $jsConsole.globalEval = (function() {
+      // globalEval code by by kangax http://perfectionkills.com/global-eval-what-are-the-options/
+      var isIndirectEvalGlobal = (function(original, Object) {
+        try {
+          return (1,eval)('Object') === original;
+        }
+        catch(err) {
+          return false;
+        }
+      })(Object, 123);
+      if (isIndirectEvalGlobal) {
+        return function(expression) {
+          return (1,eval)(expression);
+        };
+      }
+      else if (typeof window.execScript !== 'undefined') {
+        return function(expression) {
+          return window.execScript(expression);
+        };
+      }
+    })();
+    $jsConsole.interpretJS = function(js) {
+      if (js != 'q' && js != 'quit' && js != 'Q') {
+        JSterminal.io.puts(js);
+        try {
+          var r = $jsConsole.globalEval(js);
+          JSterminal.io.puts(typeof r == "number" ? r : (typeof r == "string" ? '"'+r+'"' : '"'+ typeof r +'"'));
+        } catch(err) {
+          JSterminal.io.puts(err);
+        }
+        JSterminal.io.gets($jsConsole.interpretJS);
+      } else {
+        JSterminal.io.puts("JavaScript console closed\n");
+      }
+    }
+    JSterminal.io.gets($jsConsole.interpretJS);
+  }
+});
