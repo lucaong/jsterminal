@@ -9,6 +9,8 @@ JSterminal.register("tweet", {
 });
 
 JSterminal.register("s", {
+  description: "search on Google",
+  help: "it searches the string passed as argument on Google\nSynopsis:\n  s SEARCH_QUERY",
   options: {
     "-d": {
       argument: true,
@@ -16,8 +18,6 @@ JSterminal.register("s", {
       alias: "--domain"
     }
   },
-  description: "search on Google",
-  help: "it searches the string passed as argument on Google\nSynopsis:\n  s SEARCH_QUERY",
   execute: function(argv, options){
     window.open("http://www.google."+(options["-d"] || "com")+"/search?q="+argv.join("+"));
   }
