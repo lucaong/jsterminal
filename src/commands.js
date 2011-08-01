@@ -127,7 +127,7 @@ JSterminal.register("css", {
     $cssConsole.addStyle = function(css) {
       if (css != 'q' && css != 'quit' && css != 'Q') {
         JSterminal.io.puts(css);
-        $cssConsole.cache += " "+css;
+        $cssConsole.cache += "\n"+css;
         if (!document.getElementById("JSterminal-css-console-style")) {
           var style = document.createElement("style");
           style.id = "JSterminal-css-console-style";
@@ -175,9 +175,30 @@ JSterminal.register("js", {
         JSterminal.io.puts(js);
         try {
           var r = $jsConsole.globalEval(js);
-          JSterminal.io.puts(typeof r == "number" ? r : (typeof r == "string" ? '"'+r+'"' : '"'+ typeof r +'"'));
+          switch(typeof r) {
+            case "number":
+              JSterminal.io.puts(r);
+              break;
+            case "string":
+              JSterminal.io.puts('"'+r+'"');
+              break;
+            case "boolean":
+              JSterminal.io.puts(r ? "true" : "false");
+              break;
+            case "boolean":
+              JSterminal.io.puts(r ? "true" : "false");
+              break;
+            default:
+              if (typeof r == "undefined") {
+                JSterminal.io.puts("undefined");
+              } else if (r == null) {
+                JSterminal.io.puts("null");
+              } else {
+                JSterminal.io.puts(typeof r);
+              }
+          }
         } catch(err) {
-          JSterminal.io.puts(err);
+          JSterminal.io.puts(err.name+": "+err.message);
         }
         JSterminal.io.gets($jsConsole.interpretJS);
       } else {
