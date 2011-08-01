@@ -26,16 +26,15 @@ With some basic JavaScript knowledge it's easy to write custom commands. To add 
     JSterminal.register("s", {
       description: "search on Google", // Short description
       help: "it searches the string passed as argument on Google\nSynopsis:\n  s SEARCH_QUERY",  // Help text
-      // Command line options
-      options: {
+      options: { // Command line options
         "-d": {
           argument: true, // true if the option expects an argument, false if it is just a flag
-          description: "top level domain to use (e.g. 'com', 'de' or 'it'). Default is 'com'.",
-          alias: "--domain"
+          description: "top level domain to use (e.g. 'com', 'de' or 'it'). Default is 'com'.", // Option description
+          alias: "--domain" // Option alias
         }
       },
-      // The execute method is mandatory. When this command is invoked, JSterminal calls the execute() function passing 
-      // an array of command-line arguments and a key-value object of command-line optionsset in the invocation.
+      // The execute function is the only mandatory property. When a command is invoked, JSterminal calls its execute() function
+      // passing an array of command-line arguments and a key-value object containing command-line options set in the invocation.
       execute: function(argv, options) {
         window.open("http://www.google."+(options["-d"] || "com")+"/search?q="+argv.join("+"));
       }
