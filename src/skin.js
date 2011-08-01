@@ -22,14 +22,18 @@ JSterminal.io.gets = function(callback){
   JSterminal.io.getsCallback = callback;
 };
 
+// Inputs log and pointer
 JSterminal.io.inputs = [];
 JSterminal.io.inputCursor = -1;
 
 JSterminal.io.inputScope = 0; // If > 0 the input is to be relayed to the command that called io.gets (we are in the command scope)
+
+// Command scope inputs log and pointer (and prefix)
 JSterminal.io.commandScopeInputs = [];
 JSterminal.io.commandScopeInputCursor = -1;
 JSterminal.io.commandScopePrefix = "&gt; ";
 
+// Handle onkeydown event
 JSterminal.io.keyPressed = function(e) {
   e = e || window.event;
   var keycode = e.keyCode || e.which;
@@ -76,7 +80,7 @@ JSterminal.io.keyPressed = function(e) {
   }
 };
 
-// Define launch and quit functions
+// Override launch and quit functions
 JSterminal.launch = function(){
   if(jQuery("#JSterminal_container").length <= 0)
   {

@@ -95,8 +95,8 @@ JSterminal.register("help", {
         sortedCommands.push(c);
       }
       sortedCommands.sort();
-      for (var c in sortedCommands) {
-        JSterminal.io.puts("  " + sortedCommands[c] + ": " + (JSterminal.commands[sortedCommands[c]].description || "no description"));
+      for (var i in sortedCommands) {
+        JSterminal.io.puts("  " + sortedCommands[i] + ": " + (JSterminal.commands[sortedCommands[i]].description || "no description"));
       }
       JSterminal.io.puts();
     } else {
