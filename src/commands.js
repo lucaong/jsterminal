@@ -127,7 +127,7 @@ JSterminal.register("css", {
     $cssConsole.addStyle = function(css) {
       if (css != 'q' && css != 'quit' && css != 'Q') {
         JSterminal.io.puts(css);
-        $cssConsole.cache += " "+css;
+        $cssConsole.cache += "\n"+css;
         if (!document.getElementById("JSterminal-css-console-style")) {
           var style = document.createElement("style");
           style.id = "JSterminal-css-console-style";

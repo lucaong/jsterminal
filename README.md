@@ -3,7 +3,7 @@ JSterminal
 
 One bookmarklet to rule 'em all. JSterminal is a bookmarklet that, when clicked, opens up a terminal-like interface that offers many useful commands (e.g. the command 'tr' will translate the current page, while 'w' will look for a definition on Wikipedia).
 
-With some basic JavaScript knowledge it's easy to write custom commands. To add a custom command you have to call the JSterminal.register(commandName, objectDefiningCommandLogicAndInfo) function. An example is worth a thousand words:
+With some basic JavaScript knowledge it's easy to write custom commands. To add a custom command you have to call the `JSterminal.register(commandName, objectDefiningCommandLogicAndInfo)` function. An example is worth a thousand words:
 
     JSterminal.register("s", {
       description: "search on Google", // Short description
