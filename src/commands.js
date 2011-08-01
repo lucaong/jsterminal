@@ -9,6 +9,8 @@ JSterminal.register("tweet", {
 });
 
 JSterminal.register("s", {
+  description: "search on Google",
+  help: "it searches the string passed as argument on Google\nSynopsis:\n  s SEARCH_QUERY",
   options: {
     "-d": {
       argument: true,
@@ -16,8 +18,6 @@ JSterminal.register("s", {
       alias: "--domain"
     }
   },
-  description: "search on Google",
-  help: "it searches the string passed as argument on Google\nSynopsis:\n  s SEARCH_QUERY",
   execute: function(argv, options){
     window.open("http://www.google."+(options["-d"] || "com")+"/search?q="+argv.join("+"));
   }
@@ -122,16 +122,19 @@ JSterminal.register("css", {
   description: "CSS console to add/edit page style",
   help: "it opens a CSS console, making it possible to add CSS directive to the current page. Enter 'quit' or 'q' to quit the console.",
   execute: function(argv){
-    var $cssConsole = JSterminal.commands["css"];
+    var $cssConsole = this;
     $cssConsole.cache = $cssConsole.cache || "";
     $cssConsole.addStyle = function(css) {
       if (css != 'q' && css != 'quit' && css != 'Q') {
         JSterminal.io.puts(css);
         $cssConsole.cache += " "+css;
-        if(jQuery("style#css-console").length == 0) {
-          jQuery(document.body).append("<style type='text/css' id='css-console'></style>");
+        if (!document.getElementById("JSterminal-css-console-style")) {
+          var style = document.createElement("style");
+          style.id = "JSterminal-css-console-style";
+          style.type = "text/css";
+          document.body.appendChild(style);
         }
-        jQuery("style#css-console").html($cssConsole.cache);
+        document.getElementById("JSterminal-css-console-style").innerHTML = $cssConsole.cache;
         JSterminal.io.gets($cssConsole.addStyle);
       } else {
         JSterminal.io.puts("CSS console closed\n");

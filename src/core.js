@@ -90,8 +90,13 @@ JSterminal.register("help", {
     if(argv.length === 0) {
       JSterminal.io.puts("\nJSterminal\nA list of available commands (type help COMMAND_NAME to get help on a particular command):");
       JSterminal.io.puts();
-      for (var c in JSterminal.commands) {
-        JSterminal.io.puts("  " + c + ": " + (JSterminal.commands[c].description || "no description"));
+      var sortedCommands = [];
+      for (var c in JSterminal.commands) if (JSterminal.commands.hasOwnProperty(c)) {
+        sortedCommands.push(c);
+      }
+      sortedCommands.sort();
+      for (var i in sortedCommands) {
+        JSterminal.io.puts("  " + sortedCommands[i] + ": " + (JSterminal.commands[sortedCommands[i]].description || "no description"));
       }
       JSterminal.io.puts();
     } else {
