@@ -194,7 +194,7 @@ JSterminal.register("js", {
               } else if (r == null) {
                 JSterminal.io.puts("null");
               } else {
-                JSterminal.io.puts(typeof r);
+                JSterminal.io.puts(r.toString());
               }
           }
         } catch(err) {

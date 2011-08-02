@@ -19,8 +19,11 @@ JSterminal.io.gets = function(callback){
   if (jQuery("#JSterminal_in_wrap #JSterminal_in_prefix").length == 0) {
     jQuery("#JSterminal_in_wrap").prepend("<span id=\"JSterminal_in_prefix\">"+JSterminal.io.commandScopePrefix+"</span>");
   }
-  JSterminal.io.getsCallback = callback;
+  JSterminal.io.getsCallbacks.push(callback);
 };
+
+// Gets callback queue
+JSterminal.io.getsCallbacks = [];
 
 // Inputs log and pointer
 JSterminal.io.inputs = [];
@@ -70,7 +73,7 @@ JSterminal.io.keyPressed = function(e) {
       JSterminal.io.commandScopeInputCursor = -1;
       jQuery("#JSterminal_in_wrap #JSterminal_in_prefix").remove();
       jQuery("#JSterminal_in").width("100%");
-      JSterminal.io.getsCallback(i);
+      JSterminal.io.getsCallbacks.shift()(i);
       JSterminal.io.inputScope--;
     } else if (keycode === 38) {
       if(JSterminal.io.commandScopeInputCursor < JSterminal.io.commandScopeInputs.length - 1) {
