@@ -4,8 +4,26 @@
 JSterminal.meta = JSterminal.meta || {};
 JSterminal.eventHandlers = JSterminal.eventHandlers || {};
 
-// Queue of IO interfaces that claimed control of input/output
-JSterminal.meta.inputQueue = [];
+// Implement IO queue
+JSterminal.ioQueue = (function() { // Queue of IO interfaces that claimed control of input/output
+  var queue = [];
+  return {
+    push: function(io) {
+      queue.push(io);
+    },
+    firstActive: function() {
+      var io = queue[0];
+      while (typeof io != "undefined" && !io.active) {
+        queue.shift();
+        io = queue[0];
+      }
+      return io;
+    },
+    noneActive: function() {
+      return typeof this.firstActive() == "undefined";
+    }
+  }
+})();
 
 // Redefine IO interface
 JSterminal.IO = function(opts) {
@@ -26,13 +44,20 @@ JSterminal.IO = function(opts) {
       jQuery("#JSterminal_in").focus();
     },
     gets: function(callback) {
-      JSterminal.meta.inputQueue.push(this);
       jQuery("#JSterminal_in_prefix").html(this.meta.prefixes.input || "");
       this.meta.getsCallbacks.push(callback);
     },
     flush: function(out) {
       jQuery("#JSterminal_out").html("");
     },
+    claim: function() {
+      this.active = true;
+      JSterminal.ioQueue.push(this);
+    },
+    release: function() {
+      this.active = false;
+    },
+    active: false,
     meta: m
   }
 }
@@ -46,16 +71,17 @@ JSterminal.eventHandlers.keyPressed = function(e) {
   e = e || window.event;
   var keycode = e.keyCode || e.which;
   var termIO = JSterminal.meta.termIO;
-  if (JSterminal.meta.inputQueue.length == 0) {
+  if (JSterminal.ioQueue.noneActive()) {
+    termIO.claim();
     termIO.gets(function(s) {
       termIO.puts(s);
+      termIO.release();
       JSterminal.interpret(s);
     });
   }
   // Handle input in the right scope
-  var io = JSterminal.meta.inputQueue[0];
+  var io = JSterminal.ioQueue.firstActive();
   if(keycode === 13) {
-    io = JSterminal.meta.inputQueue.shift(); // FIFO
     jQuery("#JSterminal_in_prefix").html("");
     var i = jQuery("#JSterminal_in").val();
     jQuery("#JSterminal_in").val("");
