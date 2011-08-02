@@ -124,7 +124,7 @@ JSterminal.register("css", {
   execute: function(argv){
     var $cssConsole = this;
     if (!$cssConsole.io) {
-      $cssConsole.io = JSterminal.IO();
+      $cssConsole.io = JSterminal.IO({ prefixes: { input: "&gt; ", output: "&gt; " } });
     }
     var io = $cssConsole.io;
     $cssConsole.cache = $cssConsole.cache || "";
@@ -154,7 +154,7 @@ JSterminal.register("js", {
   execute: function(argv){
     var $jsConsole = this;
     if (!$jsConsole.io) {
-      $jsConsole.io = JSterminal.IO();
+      $jsConsole.io = JSterminal.IO({ prefixes: { input: "&gt; ", output: "&gt; " } });
     }
     var io = $jsConsole.io;
     $jsConsole.globalEval = (function() {

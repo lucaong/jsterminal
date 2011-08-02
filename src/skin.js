@@ -8,27 +8,32 @@ JSterminal.eventHandlers = JSterminal.eventHandlers || {};
 JSterminal.meta.inputInterfaces = [];
 
 // Redefine IO interface
-JSterminal.IO = function() {
+JSterminal.IO = function(opts) {
+  var m = {
+    prefixes: {
+      input: "",
+      output: ""
+    },
+    inputLog: [],
+    inputLogCursor: -1,
+    getsCallbacks: []
+  }
+  for (k in opts) { if (opts.hasOwnProperty(k)) { m[k] = opts[k]; } }
   return {
     puts: function(out) {
-      jQuery("#JSterminal_in_wrap").before(this.meta.inputPrefix+(out||"")+"\n");
+      jQuery("#JSterminal_in_wrap").before((this.meta.prefixes.output || "")+(out||"")+"\n");
       jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
       jQuery("#JSterminal_in").focus();
     },
     gets: function(callback) {
       JSterminal.meta.inputInterfaces.push(this);
-      jQuery("#JSterminal_in_prefix").html(this.meta.inputPrefix);
+      jQuery("#JSterminal_in_prefix").html(this.meta.prefixes.input || "");
       this.meta.getsCallbacks.push(callback);
     },
     flush: function(out) {
       jQuery("#JSterminal_out").html("");
     },
-    meta: {
-      inputPrefix: "", // "&gt; ",
-      inputLog: [],
-      inputLogCursor: -1,
-      getsCallbacks: []
-    }
+    meta: m
   }
 }
 

@@ -70,14 +70,22 @@ var JSterminal = (function() {
       return false;
     },
     // Input/Output interface
-    IO: function() {
+    IO: function(opts) {
+      var m = {
+        prefixes: {
+          input: "Enter input:",
+          output: "Output:"
+        }
+      }
+      for (k in opts) { if (opts.hasOwnProperty(k)) { m[k] = opts[k]; } }
       return {
         puts: function(out) {
-          console.log(out || "");
+          console.log((this.meta.prefixes.output || "") + (out || ""));
         },
         gets: function(callback) {
-          callback(prompt("Enter an input:", ""));
-        }
+          callback(prompt(this.meta.prefixes.input || "", ""));
+        },
+        meta: m
       }
     }
   };
