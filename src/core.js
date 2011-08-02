@@ -31,6 +31,7 @@ var JSterminal = (function() {
       var input_array = input_string.replace(/^\s+|\s+$/g, "").match(/[^"'\s]+|"[^"]*"|'[^']*'/g);
       var command_name = input_array.shift();
       var options = {};
+      var io = JSterminal.IO();
       
       // Parse options and arguments
       for(i = 0; i < input_array.length; i++) {
@@ -51,8 +52,8 @@ var JSterminal = (function() {
       if(registered_commands[command_name]) {
         return registered_commands[command_name].execute(input_array, options);
       } else {
-        JSterminal.io.puts("unknown command " + command_name);
-        JSterminal.io.puts("type 'help' for a list of available commands");
+        io.puts("unknown command " + command_name);
+        io.puts("type 'help' for a list of available commands");
         return false;
       }
     },
@@ -68,13 +69,15 @@ var JSterminal = (function() {
     quit: function() {
       return false;
     },
-    // Input/Output functions namespace
-    io: {
-      puts: function(out) {
-        console.log(out || "");
-      },
-      gets: function(callback) {
-        callback(prompt("Enter an input:", ""));
+    // Input/Output interface
+    IO: function() {
+      return {
+        puts: function(out) {
+          console.log(out || "");
+        },
+        gets: function(callback) {
+          callback(prompt("Enter an input:", ""));
+        }
       }
     }
   };
@@ -87,33 +90,35 @@ JSterminal.register("help", {
   description: "provides some help",
   help: "with no parameters it shows a list of available commands, passing the name of a command provides help on the command",
   execute: function(argv){
+    var io = JSterminal.IO();
     if(argv.length === 0) {
-      JSterminal.io.puts("\nJSterminal\nA list of available commands (type help COMMAND_NAME to get help on a particular command):");
-      JSterminal.io.puts();
+      io.puts("\nJSterminal\nA list of available commands (type help COMMAND_NAME to get help on a particular command):");
+      io.puts();
       var sortedCommands = [];
       for (var c in JSterminal.commands) if (JSterminal.commands.hasOwnProperty(c)) {
         sortedCommands.push(c);
       }
       sortedCommands.sort();
       for (var i in sortedCommands) {
-        JSterminal.io.puts("  " + sortedCommands[i] + ": " + (JSterminal.commands[sortedCommands[i]].description || "no description"));
+        io.puts("  " + sortedCommands[i] + ": " + (JSterminal.commands[sortedCommands[i]].description || "no description"));
       }
-      JSterminal.io.puts();
+      io.puts();
     } else {
       for(var i in argv) {
         if(JSterminal.commands[argv[i]]) {
-          JSterminal.io.puts(argv[i] + ":\n  " + (JSterminal.commands[argv[i]].help || "no help"));
+          io.puts(argv[i] + ":\n  " + (JSterminal.commands[argv[i]].help || "no help"));
           if(!!JSterminal.commands[argv[i]].options) {
-            JSterminal.io.puts("\n  OPTIONS:");
+            io.puts("\n  OPTIONS:");
             for(var j in JSterminal.commands[argv[i]].options) {
               var option_names = !!JSterminal.commands[argv[i]].options[j].alias ?
                 [j, JSterminal.commands[argv[i]].options[j].alias] :
                 [j];
-              JSterminal.io.puts("    " + option_names.join(", ") + "\n      " + (JSterminal.commands[argv[i]].options[j].description || "no description") + "\n");
+              io.puts("    " + option_names.join(", ") + "\n      " + (JSterminal.commands[argv[i]].options[j].description || "no description") + "\n");
+              io.puts("");
             }
           }
         } else {
-          JSterminal.io.puts("unknown command " + argv[i]);
+          io.puts("unknown command " + argv[i]);
         }
       }
     }

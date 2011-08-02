@@ -123,10 +123,14 @@ JSterminal.register("css", {
   help: "it opens a CSS console, making it possible to add CSS directive to the current page. Enter 'quit' or 'q' to quit the console.",
   execute: function(argv){
     var $cssConsole = this;
+    if (!$cssConsole.io) {
+      $cssConsole.io = JSterminal.IO();
+    }
+    var io = $cssConsole.io;
     $cssConsole.cache = $cssConsole.cache || "";
     $cssConsole.addStyle = function(css) {
       if (css != 'q' && css != 'quit' && css != 'Q') {
-        JSterminal.io.puts(css);
+        io.puts(css);
         $cssConsole.cache += "\n"+css;
         if (!document.getElementById("JSterminal-css-console-style")) {
           var style = document.createElement("style");
@@ -135,12 +139,12 @@ JSterminal.register("css", {
           document.body.appendChild(style);
         }
         document.getElementById("JSterminal-css-console-style").innerHTML = $cssConsole.cache;
-        JSterminal.io.gets($cssConsole.addStyle);
+        io.gets($cssConsole.addStyle);
       } else {
-        JSterminal.io.puts("CSS console closed\n");
+        io.puts("CSS console closed\n");
       }
     }
-    JSterminal.io.gets($cssConsole.addStyle);
+    io.gets($cssConsole.addStyle);
   }
 });
 
@@ -149,6 +153,10 @@ JSterminal.register("js", {
   help: "it opens an interactive JavaScript console. Enter 'quit' or 'q' to quit the console.",
   execute: function(argv){
     var $jsConsole = this;
+    if (!$jsConsole.io) {
+      $jsConsole.io = JSterminal.IO();
+    }
+    var io = $jsConsole.io;
     $jsConsole.globalEval = (function() {
       // globalEval code by kangax http://perfectionkills.com/global-eval-what-are-the-options/
       var isIndirectEvalGlobal = (function(original, Object) {
@@ -172,39 +180,39 @@ JSterminal.register("js", {
     })();
     $jsConsole.interpretJS = function(js) {
       if (js != 'q' && js != 'quit' && js != 'Q') {
-        JSterminal.io.puts(js);
+        io.puts(js);
         try {
           var r = $jsConsole.globalEval(js);
           switch(typeof r) {
             case "number":
-              JSterminal.io.puts(r);
+              io.puts(r);
               break;
             case "string":
-              JSterminal.io.puts('"'+r+'"');
+              io.puts('"'+r+'"');
               break;
             case "boolean":
-              JSterminal.io.puts(r ? "true" : "false");
+              io.puts(r ? "true" : "false");
               break;
             case "boolean":
-              JSterminal.io.puts(r ? "true" : "false");
+              io.puts(r ? "true" : "false");
               break;
             default:
               if (typeof r == "undefined") {
-                JSterminal.io.puts("undefined");
+                io.puts("undefined");
               } else if (r == null) {
-                JSterminal.io.puts("null");
+                io.puts("null");
               } else {
-                JSterminal.io.puts(r.toString());
+                io.puts(r.toString());
               }
           }
         } catch(err) {
-          JSterminal.io.puts(err.name+": "+err.message);
+          io.puts(err.name+": "+err.message);
         }
-        JSterminal.io.gets($jsConsole.interpretJS);
+        io.gets($jsConsole.interpretJS);
       } else {
-        JSterminal.io.puts("JavaScript console closed\n");
+        io.puts("JavaScript console closed\n");
       }
     }
-    JSterminal.io.gets($jsConsole.interpretJS);
+    io.gets($jsConsole.interpretJS);
   }
 });
