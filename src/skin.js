@@ -47,47 +47,31 @@ JSterminal.eventHandlers.keyPressed = function(e) {
   var keycode = e.keyCode || e.which;
   var termIO = JSterminal.meta.termIO;
   if (JSterminal.meta.inputQueue.length == 0) {
-    // Terminal IO scope
-    if(keycode === 13) {
-      jQuery("#JSterminal_in_prefix").html("");
-      var i = jQuery("#JSterminal_in").val();
-      jQuery("#JSterminal_in").val("");
-      termIO.puts(i);
-      termIO.meta.inputLog.unshift(i);
-      termIO.meta.inputLogCursor = -1;
-      JSterminal.interpret(i);
-    } else if (keycode === 27) {
+    termIO.gets(function(s) {
+      termIO.puts(s);
+      JSterminal.interpret(s);
+    });
+  }
+  // Handle input in the right scope
+  var io = JSterminal.meta.inputQueue[0];
+  if(keycode === 13) {
+    io = JSterminal.meta.inputQueue.shift(); // FIFO
+    jQuery("#JSterminal_in_prefix").html("");
+    var i = jQuery("#JSterminal_in").val();
+    jQuery("#JSterminal_in").val("");
+    io.meta.inputLog.unshift(i);
+    io.meta.inputLogCursor = -1;
+    io.meta.getsCallbacks.shift()(i);
+  } else if (keycode === 27) {
       JSterminal.quit();
-    } else if (keycode === 38) {
-      if(termIO.meta.inputLogCursor < termIO.meta.inputLog.length - 1) {
-        jQuery("#JSterminal_in").val(termIO.meta.inputLog[++termIO.meta.inputLogCursor]);
-        return false; // Avoid placing the cursor at the beginning
-      }
-    } else if (keycode === 40) {
-      if(termIO.meta.inputLogCursor >= 0) {
-        jQuery("#JSterminal_in").val(termIO.meta.inputLog[--termIO.meta.inputLogCursor]);
-      }
+  } else if (keycode === 38) {
+    if(io.meta.inputLogCursor < io.meta.inputLog.length - 1) {
+      jQuery("#JSterminal_in").val(io.meta.inputLog[++io.meta.inputLogCursor]);
+      return false; // Avoid placing the cursor at the beginning
     }
-  } else {
-    // Some command's IO scope
-    var io = JSterminal.meta.inputQueue[0];
-    if(keycode === 13) {
-      io = JSterminal.meta.inputQueue.shift(); // FIFO
-      jQuery("#JSterminal_in_prefix").html("");
-      var i = jQuery("#JSterminal_in").val();
-      jQuery("#JSterminal_in").val("");
-      io.meta.inputLog.unshift(i);
-      io.meta.inputLogCursor = -1;
-      io.meta.getsCallbacks.shift()(i);
-    } else if (keycode === 38) {
-      if(io.meta.inputLogCursor < io.meta.inputLog.length - 1) {
-        jQuery("#JSterminal_in").val(io.meta.inputLog[++io.meta.inputLogCursor]);
-        return false; // Avoid placing the cursor at the beginning
-      }
-    } else if (keycode === 40) {
-      if(io.meta.inputLogCursor >= 0) {
-        jQuery("#JSterminal_in").val(io.meta.inputLog[--io.meta.inputLogCursor]);
-      }
+  } else if (keycode === 40) {
+    if(io.meta.inputLogCursor >= 0) {
+      jQuery("#JSterminal_in").val(io.meta.inputLog[--io.meta.inputLogCursor]);
     }
   }
 };
