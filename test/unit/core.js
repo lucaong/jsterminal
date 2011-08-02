@@ -28,13 +28,14 @@ $(document).ready(function(){
         alias: "--alias"
       }
     },
-    execute: function(argv, options){
+    execute: function(argv, options) {
+      var io = JSterminal.IO();
       if (argv.length > 0) {
         testValue = {arguments: argv, options: options};
       } else {
-        JSterminal.io.gets(function(s) {
-          JSterminal.io.flush();
-          JSterminal.io.puts(s);
+        io.gets(function(s) {
+          io.flush();
+          io.puts(s);
           testValue = s;
         });
       }
@@ -44,13 +45,14 @@ $(document).ready(function(){
   JSterminal.register("testcommand_no_options", {
     description: "a test command",
     help: "this is a help text",
-    execute: function(argv, options){
+    execute: function(argv, options) {
+      var io = JSterminal.IO();
       if (argv.length > 0) {
         testValue = {arguments: argv, options: options};
       } else {
-        JSterminal.io.gets(function(s) {
-          JSterminal.io.flush();
-          JSterminal.io.puts(s);
+        io.gets(function(s) {
+          io.flush();
+          io.puts(s);
           testValue = s;
         });
       }
@@ -119,12 +121,13 @@ $(document).ready(function(){
   });
 
   test("'help' command", function() {
-    JSterminal.io.flush();
+    var io = JSterminal.IO();
+    io.flush();
     JSterminal.interpret("help testcommand_no_options");
     equals($("#out").html(), "testcommand_no_options:\n  this is a help text",
       "the 'help' command should provide help on command, if a 'help' property was provided");
     
-    JSterminal.io.flush();
+    io.flush();
     JSterminal.interpret("help testcommand");
     equals($("#out:contains('test option description')").length, 1,
       "the 'help' command should provide a description of options, if available");

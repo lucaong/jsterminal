@@ -1,10 +1,15 @@
-// Override or mock IO functions
-JSterminal.io.flush = function(out){
-  $("#out").html("");
-};
-JSterminal.io.puts = function(out){
-  $("#out").append((out||""));
-};
-JSterminal.io.gets = function(callback){
-  callback("testinput");
-};
+// Mock IO interface
+
+JSterminal.IO = function() {
+  return {
+    puts: function(out) {
+      $("#out").append((out||""));
+    },
+    gets: function(callback) {
+      callback("testinput");
+    },
+    flush: function(out) {
+      $("#out").html("");
+    }
+  }
+}
