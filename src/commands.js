@@ -150,7 +150,7 @@ JSterminal.register("js", {
   execute: function(argv){
     var $jsConsole = this;
     $jsConsole.globalEval = (function() {
-      // globalEval code by by kangax http://perfectionkills.com/global-eval-what-are-the-options/
+      // globalEval code by kangax http://perfectionkills.com/global-eval-what-are-the-options/
       var isIndirectEvalGlobal = (function(original, Object) {
         try {
           return (1,eval)('Object') === original;
