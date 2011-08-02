@@ -4,8 +4,29 @@
 JSterminal.meta = JSterminal.meta || {};
 JSterminal.eventHandlers = JSterminal.eventHandlers || {};
 
-// Queue of IO interfaces that claimed control of input/output
-JSterminal.meta.inputQueue = [];
+// Implement IO queue
+JSterminal.ioQueue = (function() { // Queue of IO interfaces that claimed control of input/output
+  var queue = [];
+  return {
+    push: function(io) {
+      queue.push(io);
+    },
+    firstActive: function() {
+      var io = queue[0];
+      while (typeof io != "undefined" && !io.active) {
+        queue.shift();
+        io = queue[0];
+      }
+      return io;
+    },
+    noneActive: function() {
+      return typeof this.firstActive() == "undefined";
+    },
+    empty: function() {
+      queue = [];
+    }
+  }
+})();
 
 // Redefine IO interface
 JSterminal.IO = function(opts) {
@@ -16,22 +37,46 @@ JSterminal.IO = function(opts) {
     },
     inputLog: [],
     inputLogCursor: -1,
-    getsCallbacks: []
+    outputQueue: [],
+    getsCallbacks: [],
   }
   for (k in opts) { if (opts.hasOwnProperty(k)) { m[k] = opts[k]; } }
   return {
     puts: function(out) {
-      jQuery("#JSterminal_in_wrap").before((this.meta.prefixes.output || "")+(out||"")+"\n");
-      jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
-      jQuery("#JSterminal_in").focus();
+      if (!this.active) {
+        this.claim();
+        this.immediateRelease = true;
+      }
+      if (this.hasControl()) {
+        jQuery("#JSterminal_in_wrap").before((this.meta.prefixes.output || "")+(out||"")+"\n");
+        jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
+        jQuery("#JSterminal_in").focus();
+        if (this.immediateRelease) {
+          this.release();
+        }
+      } else {
+        this.meta.outputQueue.push(out);
+      }
     },
     gets: function(callback) {
-      JSterminal.meta.inputQueue.push(this);
-      jQuery("#JSterminal_in_prefix").html(this.meta.prefixes.input || "");
+      if (!this.active) {
+        this.claim();
+        this.immediateRelease = true;
+      }
       this.meta.getsCallbacks.push(callback);
     },
-    flush: function(out) {
-      jQuery("#JSterminal_out").html("");
+    claim: function() {
+      this.active = true;
+      JSterminal.ioQueue.push(this);
+    },
+    release: function() {
+      this.active = false;
+      JSterminal.eventHandlers.ioReleased();
+    },
+    active: false,
+    immediateRelease: false,
+    hasControl: function() {
+      return this == JSterminal.ioQueue.firstActive();
     },
     meta: m
   }
@@ -39,29 +84,45 @@ JSterminal.IO = function(opts) {
 
 // Terminal input/output interface
 JSterminal.meta.termIO = JSterminal.IO();
-JSterminal.meta.termIO.meta.inputPrefix = "";
+
+// Handle ioReleased
+JSterminal.eventHandlers.ioReleased = function() {
+  var io = JSterminal.ioQueue.firstActive();
+  if(!!io) {
+    jQuery("#JSterminal_in_prefix").html(io.meta.prefixes.input || "");
+    var out;
+    while (out = io.meta.outputQueue.shift()) {
+      jQuery("#JSterminal_in_wrap").before((io.meta.prefixes.output || "")+(out||"")+"\n");
+      jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
+      jQuery("#JSterminal_in").focus();
+      if (io.immediateRelease) {
+        io.release();
+      }
+    }
+  }
+}
 
 // Handle onkeydown event in #JSterminal_in
 JSterminal.eventHandlers.keyPressed = function(e) {
   e = e || window.event;
   var keycode = e.keyCode || e.which;
-  var termIO = JSterminal.meta.termIO;
-  if (JSterminal.meta.inputQueue.length == 0) {
-    termIO.gets(function(s) {
-      termIO.puts(s);
-      JSterminal.interpret(s);
-    });
-  }
   // Handle input in the right scope
-  var io = JSterminal.meta.inputQueue[0];
+  var termIO = JSterminal.meta.termIO;
+  termIO.gets(function(s) {
+    termIO.puts(s);
+    JSterminal.interpret(s);
+  });
+  JSterminal.eventHandlers.ioReleased();
+  var io = JSterminal.ioQueue.firstActive();
   if(keycode === 13) {
-    io = JSterminal.meta.inputQueue.shift(); // FIFO
-    jQuery("#JSterminal_in_prefix").html("");
     var i = jQuery("#JSterminal_in").val();
     jQuery("#JSterminal_in").val("");
     io.meta.inputLog.unshift(i);
     io.meta.inputLogCursor = -1;
     io.meta.getsCallbacks.shift()(i);
+    if (io.immediateRelease) {
+      io.release();
+    }
   } else if (keycode === 27) {
       JSterminal.quit();
   } else if (keycode === 38) {
@@ -87,6 +148,6 @@ JSterminal.launch = function() {
 };
 
 JSterminal.quit = function() {
-  JSterminal.meta.inputQueue = [];
+  JSterminal.ioQueue.empty();
   jQuery("#JSterminal_container").remove();
 }

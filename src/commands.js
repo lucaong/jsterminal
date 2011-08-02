@@ -125,6 +125,7 @@ JSterminal.register("css", {
   execute: function(argv){
     var $cssConsole = this;
     var io = $cssConsole.io;
+    io.claim();
     $cssConsole.cache = $cssConsole.cache || "";
     $cssConsole.addStyle = function(css) {
       if (css != 'q' && css != 'quit' && css != 'Q') {
@@ -140,6 +141,7 @@ JSterminal.register("css", {
         io.gets($cssConsole.addStyle);
       } else {
         io.puts("CSS console closed\n");
+        io.release();
       }
     }
     io.gets($cssConsole.addStyle);
@@ -153,6 +155,7 @@ JSterminal.register("js", {
   execute: function(argv){
     var $jsConsole = this;
     var io = $jsConsole.io;
+    io.claim();
     $jsConsole.globalEval = (function() {
       // globalEval code by kangax http://perfectionkills.com/global-eval-what-are-the-options/
       var isIndirectEvalGlobal = (function(original, Object) {
@@ -207,6 +210,7 @@ JSterminal.register("js", {
         io.gets($jsConsole.interpretJS);
       } else {
         io.puts("JavaScript console closed\n");
+        io.release();
       }
     }
     io.gets($jsConsole.interpretJS);
