@@ -4,8 +4,8 @@
 JSterminal.meta = JSterminal.meta || {};
 JSterminal.eventHandlers = JSterminal.eventHandlers || {};
 
-// Queue of IO interfaced that claimed control of input/output
-JSterminal.meta.inputInterfaces = [];
+// Queue of IO interfaces that claimed control of input/output
+JSterminal.meta.inputQueue = [];
 
 // Redefine IO interface
 JSterminal.IO = function(opts) {
@@ -26,7 +26,7 @@ JSterminal.IO = function(opts) {
       jQuery("#JSterminal_in").focus();
     },
     gets: function(callback) {
-      JSterminal.meta.inputInterfaces.push(this);
+      JSterminal.meta.inputQueue.push(this);
       jQuery("#JSterminal_in_prefix").html(this.meta.prefixes.input || "");
       this.meta.getsCallbacks.push(callback);
     },
@@ -46,8 +46,8 @@ JSterminal.eventHandlers.keyPressed = function(e) {
   e = e || window.event;
   var keycode = e.keyCode || e.which;
   var termIO = JSterminal.meta.termIO;
-  if (JSterminal.meta.inputInterfaces.length == 0) {
-    // Terminal input/output scope
+  if (JSterminal.meta.inputQueue.length == 0) {
+    // Terminal IO scope
     if(keycode === 13) {
       jQuery("#JSterminal_in_prefix").html("");
       var i = jQuery("#JSterminal_in").val();
@@ -69,10 +69,10 @@ JSterminal.eventHandlers.keyPressed = function(e) {
       }
     }
   } else {
-    // Command input/output scope
-    var io = JSterminal.meta.inputInterfaces[0];
+    // Some command's IO scope
+    var io = JSterminal.meta.inputQueue[0];
     if(keycode === 13) {
-      io = JSterminal.meta.inputInterfaces.shift();
+      io = JSterminal.meta.inputQueue.shift(); // FIFO
       jQuery("#JSterminal_in_prefix").html("");
       var i = jQuery("#JSterminal_in").val();
       jQuery("#JSterminal_in").val("");
@@ -103,20 +103,6 @@ JSterminal.launch = function() {
 };
 
 JSterminal.quit = function() {
-  JSterminal.meta.inputInterfaces = [];
+  JSterminal.meta.inputQueue = [];
   jQuery("#JSterminal_container").remove();
-}
-
-// BOOT
-
-// Load jQuery if needed and launch JSterminal
-if(typeof jQuery === 'undefined') {
-  var script = document.createElement("script");
-  script.src = "https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js";
-  script.onload = function(){
-    JSterminal.launch();
-  };
-  document.body.appendChild(script);
-} else {
-  JSterminal.launch();
 }

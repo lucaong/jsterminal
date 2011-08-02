@@ -121,11 +121,9 @@ JSterminal.register("gmail", {
 JSterminal.register("css", {
   description: "CSS console to add/edit page style",
   help: "it opens a CSS console, making it possible to add CSS directive to the current page. Enter 'quit' or 'q' to quit the console.",
+  io: JSterminal.IO({ prefixes: { input: "&gt; ", output: "&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
   execute: function(argv){
     var $cssConsole = this;
-    if (!$cssConsole.io) {
-      $cssConsole.io = JSterminal.IO({ prefixes: { input: "&gt; ", output: "&gt; " } });
-    }
     var io = $cssConsole.io;
     $cssConsole.cache = $cssConsole.cache || "";
     $cssConsole.addStyle = function(css) {
@@ -151,11 +149,9 @@ JSterminal.register("css", {
 JSterminal.register("js", {
   description: "JavaScript console",
   help: "it opens an interactive JavaScript console. Enter 'quit' or 'q' to quit the console.",
+  io: JSterminal.IO({ prefixes: { input: "&gt; ", output: "&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
   execute: function(argv){
     var $jsConsole = this;
-    if (!$jsConsole.io) {
-      $jsConsole.io = JSterminal.IO({ prefixes: { input: "&gt; ", output: "&gt; " } });
-    }
     var io = $jsConsole.io;
     $jsConsole.globalEval = (function() {
       // globalEval code by kangax http://perfectionkills.com/global-eval-what-are-the-options/

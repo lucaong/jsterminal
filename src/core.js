@@ -122,9 +122,9 @@ JSterminal.register("help", {
                 [j, JSterminal.commands[argv[i]].options[j].alias] :
                 [j];
               io.puts("    " + option_names.join(", ") + "\n      " + (JSterminal.commands[argv[i]].options[j].description || "no description") + "\n");
-              io.puts("");
             }
           }
+          io.puts("");
         } else {
           io.puts("unknown command " + argv[i]);
         }
