@@ -8,19 +8,19 @@
 
 
 var JSterminal = (function() {
-  var registered_commands = {};
+  var registeredCommands = {};
 
   return {
     // Function register(command, obj): register a command
     register: function(command, obj){
-      registered_commands[command] = obj;
+      registeredCommands[command] = obj;
       
       // Manage options aliases
       if (!!obj.options) {
-        registered_commands[command].optionAliases = registered_commands[command].optionAliases || {};
+        registeredCommands[command].optionAliases = registeredCommands[command].optionAliases || {};
         for(var i in obj.options) {
           if (!!obj.options[i].alias) {
-            registered_commands[command].optionAliases[obj.options[i].alias] = i;
+            registeredCommands[command].optionAliases[obj.options[i].alias] = i;
           }
         }
       }
@@ -35,12 +35,12 @@ var JSterminal = (function() {
       
       // Parse options and arguments
       for(i = 0; i < input_array.length; i++) {
-        var opt = (!!registered_commands[command_name] && !!registered_commands[command_name].options) ? 
-          (registered_commands[command_name].options[input_array[i]] || registered_commands[command_name].options[registered_commands[command_name].optionAliases[input_array[i]]]) :
+        var opt = (!!registeredCommands[command_name] && !!registeredCommands[command_name].options) ? 
+          (registeredCommands[command_name].options[input_array[i]] || registeredCommands[command_name].options[registeredCommands[command_name].optionAliases[input_array[i]]]) :
             false;
         if (!!opt) {
           var opt_name = input_array.splice(i, 1)[0];
-          opt_name = !!registered_commands[command_name].options[opt_name] ? opt_name : registered_commands[command_name].optionAliases[opt_name];
+          opt_name = !!registeredCommands[command_name].options[opt_name] ? opt_name : registeredCommands[command_name].optionAliases[opt_name];
           options[opt_name] = !!opt.argument ? input_array.splice(i, 1)[0] : true;
           i--;
         } else {
@@ -49,8 +49,8 @@ var JSterminal = (function() {
       }
       
       // Execute command, or return false if it does not exist
-      if(registered_commands[command_name]) {
-        return registered_commands[command_name].execute(input_array, options);
+      if(registeredCommands[command_name]) {
+        return registeredCommands[command_name].execute(input_array, options);
       } else {
         io.puts("unknown command " + command_name);
         io.puts("type 'help' for a list of available commands");
@@ -58,7 +58,7 @@ var JSterminal = (function() {
       }
     },
     // Object commands: object containing registered commands
-    commands: registered_commands,
+    commands: registeredCommands,
     launch: function() {
       var command = prompt("Insert a command:", "help");
       if (command) {

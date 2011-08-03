@@ -4,8 +4,59 @@
 JSterminal.meta = JSterminal.meta || {};
 JSterminal.eventHandlers = JSterminal.eventHandlers || {};
 
-// Queue of IO interfaces that claimed control of input/output
-JSterminal.meta.inputQueue = [];
+// Implement IO queue
+JSterminal.ioQueue = (function() { // Queue of IO interfaces that claimed control of input/output
+  var queue = [];
+  return {
+    push: function(obj) {
+      queue.push(obj);
+    },
+    first: function() {
+      return !!queue[0] ? queue[0].io : false;
+    },
+    firstWasServed: function() {
+      var obj = queue[0];
+      if (typeof !!obj && (!obj.claim || !obj.io.isClaiming()) ) {
+        queue.shift();
+      }
+      JSterminal.ioQueue.serveNext();
+    },
+    serveNext: function() {
+      var io = JSterminal.ioQueue.first();
+      if (!!io) {
+        var request = io.meta.requestsQueue[0];
+        if (!!request) {
+          switch(request.type) {
+            case "gets":
+              jQuery("#JSterminal_in_prefix").html(io.meta.prefixes.input || "");
+              break;
+            case "puts":
+              jQuery("#JSterminal_in_wrap").before((io.meta.prefixes.output || "")+(request.data.output||"")+"\n");
+              jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
+              jQuery("#JSterminal_in").focus();
+              io.meta.requestsQueue.shift();
+              JSterminal.ioQueue.firstWasServed();
+              break;
+            default:
+              io.meta.requestsQueue.shift();
+              JSterminal.ioQueue.firstWasServed();
+          }
+        }
+      } else {
+        JSterminal.meta.termIO.gets(function(s) {
+          JSterminal.meta.termIO.puts(s);
+          JSterminal.interpret(s);
+        });
+      }
+    },
+    isEmpty: function() {
+      return (!!this.first());
+    },
+    empty: function() {
+      queue = [];
+    }
+  }
+})();
 
 // Redefine IO interface
 JSterminal.IO = function(opts) {
@@ -16,22 +67,38 @@ JSterminal.IO = function(opts) {
     },
     inputLog: [],
     inputLogCursor: -1,
-    getsCallbacks: []
+    requestsQueue: [],
   }
+  var claiming = false;
   for (k in opts) { if (opts.hasOwnProperty(k)) { m[k] = opts[k]; } }
   return {
     puts: function(out) {
-      jQuery("#JSterminal_in_wrap").before((this.meta.prefixes.output || "")+(out||"")+"\n");
-      jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
-      jQuery("#JSterminal_in").focus();
+      this.meta.requestsQueue.push({type: "puts", data: {output: out}});
+      if (!this.isClaiming()) {
+        this.enqueue();
+      }
+      JSterminal.ioQueue.serveNext();
     },
     gets: function(callback) {
-      JSterminal.meta.inputQueue.push(this);
-      jQuery("#JSterminal_in_prefix").html(this.meta.prefixes.input || "");
-      this.meta.getsCallbacks.push(callback);
+      this.meta.requestsQueue.push({type: "gets", callback: callback});
+      if (!this.isClaiming()) {
+        this.enqueue();
+      }
+      JSterminal.ioQueue.serveNext();
     },
-    flush: function(out) {
-      jQuery("#JSterminal_out").html("");
+    claim: function() {
+      claiming = true;
+      this.enqueue();
+    },
+    enqueue: function() {
+      JSterminal.ioQueue.push({io: this, claim: this.isClaiming() ? true : false});
+    },
+    release: function() {
+      claiming = false;
+      JSterminal.ioQueue.serveNext();
+    },
+    isClaiming: function() {
+      return claiming;
     },
     meta: m
   }
@@ -39,29 +106,23 @@ JSterminal.IO = function(opts) {
 
 // Terminal input/output interface
 JSterminal.meta.termIO = JSterminal.IO();
-JSterminal.meta.termIO.meta.inputPrefix = "";
 
 // Handle onkeydown event in #JSterminal_in
 JSterminal.eventHandlers.keyPressed = function(e) {
   e = e || window.event;
   var keycode = e.keyCode || e.which;
-  var termIO = JSterminal.meta.termIO;
-  if (JSterminal.meta.inputQueue.length == 0) {
-    termIO.gets(function(s) {
-      termIO.puts(s);
-      JSterminal.interpret(s);
-    });
-  }
   // Handle input in the right scope
-  var io = JSterminal.meta.inputQueue[0];
+  var io = JSterminal.ioQueue.first();
   if(keycode === 13) {
-    io = JSterminal.meta.inputQueue.shift(); // FIFO
-    jQuery("#JSterminal_in_prefix").html("");
     var i = jQuery("#JSterminal_in").val();
     jQuery("#JSterminal_in").val("");
     io.meta.inputLog.unshift(i);
     io.meta.inputLogCursor = -1;
-    io.meta.getsCallbacks.shift()(i);
+    var request = io.meta.requestsQueue[0];
+    if (!!request && request.type == "gets") {
+      io.meta.requestsQueue.shift().callback(i);
+      JSterminal.ioQueue.firstWasServed();
+    }
   } else if (keycode === 27) {
       JSterminal.quit();
   } else if (keycode === 38) {
@@ -71,7 +132,7 @@ JSterminal.eventHandlers.keyPressed = function(e) {
     }
   } else if (keycode === 40) {
     if(io.meta.inputLogCursor >= 0) {
-      jQuery("#JSterminal_in").val(io.meta.inputLog[--io.meta.inputLogCursor]);
+      jQuery("#JSterminal_in").val(io.meta.inputLog[--io.meta.inputLogCursor] || "");
     }
   }
 };
@@ -87,6 +148,6 @@ JSterminal.launch = function() {
 };
 
 JSterminal.quit = function() {
-  JSterminal.meta.inputQueue = [];
+  JSterminal.ioQueue.empty();
   jQuery("#JSterminal_container").remove();
 }
