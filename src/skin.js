@@ -8,19 +8,49 @@ JSterminal.eventHandlers = JSterminal.eventHandlers || {};
 JSterminal.ioQueue = (function() { // Queue of IO interfaces that claimed control of input/output
   var queue = [];
   return {
-    push: function(io) {
-      queue.push(io);
+    push: function(obj) {
+      queue.push(obj);
     },
-    firstActive: function() {
-      var io = queue[0];
-      while (typeof io != "undefined" && !io.active) {
+    first: function() {
+      return !!queue[0] ? queue[0].io : false;
+    },
+    firstWasServed: function() {
+      var obj = queue[0];
+      if (typeof !!obj && (!obj.claim || !obj.io.isClaiming()) ) {
         queue.shift();
-        io = queue[0];
       }
-      return io;
+      JSterminal.ioQueue.serveNext();
     },
-    noneActive: function() {
-      return typeof this.firstActive() == "undefined";
+    serveNext: function() {
+      var io = JSterminal.ioQueue.first();
+      if (!!io) {
+        var request = io.meta.requestsQueue[0];
+        if (!!request) {
+          switch(request.type) {
+            case "gets":
+              jQuery("#JSterminal_in_prefix").html(io.meta.prefixes.input || "");
+              break;
+            case "puts":
+              jQuery("#JSterminal_in_wrap").before((io.meta.prefixes.output || "")+(request.data.output||"")+"\n");
+              jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
+              jQuery("#JSterminal_in").focus();
+              io.meta.requestsQueue.shift();
+              JSterminal.ioQueue.firstWasServed();
+              break;
+            default:
+              io.meta.requestsQueue.shift();
+              JSterminal.ioQueue.firstWasServed();
+          }
+        }
+      } else {
+        JSterminal.meta.termIO.gets(function(s) {
+          JSterminal.meta.termIO.puts(s);
+          JSterminal.interpret(s);
+        });
+      }
+    },
+    isEmpty: function() {
+      return (!!this.first());
     },
     empty: function() {
       queue = [];
@@ -37,46 +67,38 @@ JSterminal.IO = function(opts) {
     },
     inputLog: [],
     inputLogCursor: -1,
-    outputQueue: [],
-    getsCallbacks: [],
+    requestsQueue: [],
   }
+  var claiming = false;
   for (k in opts) { if (opts.hasOwnProperty(k)) { m[k] = opts[k]; } }
   return {
     puts: function(out) {
-      if (!this.active) {
-        this.claim();
-        this.immediateRelease = true;
+      this.meta.requestsQueue.push({type: "puts", data: {output: out}});
+      if (!this.isClaiming()) {
+        this.enqueue();
       }
-      if (this.hasControl()) {
-        jQuery("#JSterminal_in_wrap").before((this.meta.prefixes.output || "")+(out||"")+"\n");
-        jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
-        jQuery("#JSterminal_in").focus();
-        if (this.immediateRelease) {
-          this.release();
-        }
-      } else {
-        this.meta.outputQueue.push(out);
-      }
+      JSterminal.ioQueue.serveNext();
     },
     gets: function(callback) {
-      if (!this.active) {
-        this.claim();
-        this.immediateRelease = true;
+      this.meta.requestsQueue.push({type: "gets", callback: callback});
+      if (!this.isClaiming()) {
+        this.enqueue();
       }
-      this.meta.getsCallbacks.push(callback);
+      JSterminal.ioQueue.serveNext();
     },
     claim: function() {
-      this.active = true;
-      JSterminal.ioQueue.push(this);
+      claiming = true;
+      this.enqueue();
+    },
+    enqueue: function() {
+      JSterminal.ioQueue.push({io: this, claim: this.isClaiming() ? true : false});
     },
     release: function() {
-      this.active = false;
-      JSterminal.eventHandlers.ioReleased();
+      claiming = false;
+      JSterminal.ioQueue.serveNext();
     },
-    active: false,
-    immediateRelease: false,
-    hasControl: function() {
-      return this == JSterminal.ioQueue.firstActive();
+    isClaiming: function() {
+      return claiming;
     },
     meta: m
   }
@@ -85,43 +107,21 @@ JSterminal.IO = function(opts) {
 // Terminal input/output interface
 JSterminal.meta.termIO = JSterminal.IO();
 
-// Handle ioReleased
-JSterminal.eventHandlers.ioReleased = function() {
-  var io = JSterminal.ioQueue.firstActive();
-  if(!!io) {
-    jQuery("#JSterminal_in_prefix").html(io.meta.prefixes.input || "");
-    var out;
-    while (out = io.meta.outputQueue.shift()) {
-      jQuery("#JSterminal_in_wrap").before((io.meta.prefixes.output || "")+(out||"")+"\n");
-      jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
-      jQuery("#JSterminal_in").focus();
-      if (io.immediateRelease) {
-        io.release();
-      }
-    }
-  }
-}
-
 // Handle onkeydown event in #JSterminal_in
 JSterminal.eventHandlers.keyPressed = function(e) {
   e = e || window.event;
   var keycode = e.keyCode || e.which;
   // Handle input in the right scope
-  var termIO = JSterminal.meta.termIO;
-  termIO.gets(function(s) {
-    termIO.puts(s);
-    JSterminal.interpret(s);
-  });
-  JSterminal.eventHandlers.ioReleased();
-  var io = JSterminal.ioQueue.firstActive();
+  var io = JSterminal.ioQueue.first();
   if(keycode === 13) {
     var i = jQuery("#JSterminal_in").val();
     jQuery("#JSterminal_in").val("");
     io.meta.inputLog.unshift(i);
     io.meta.inputLogCursor = -1;
-    io.meta.getsCallbacks.shift()(i);
-    if (io.immediateRelease) {
-      io.release();
+    var request = io.meta.requestsQueue[0];
+    if (!!request && request.type == "gets") {
+      io.meta.requestsQueue.shift().callback(i);
+      JSterminal.ioQueue.firstWasServed();
     }
   } else if (keycode === 27) {
       JSterminal.quit();
@@ -132,7 +132,7 @@ JSterminal.eventHandlers.keyPressed = function(e) {
     }
   } else if (keycode === 40) {
     if(io.meta.inputLogCursor >= 0) {
-      jQuery("#JSterminal_in").val(io.meta.inputLog[--io.meta.inputLogCursor]);
+      jQuery("#JSterminal_in").val(io.meta.inputLog[--io.meta.inputLogCursor] || "");
     }
   }
 };
