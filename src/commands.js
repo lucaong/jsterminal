@@ -121,7 +121,7 @@ JSterminal.register("gmail", {
 JSterminal.register("css", {
   description: "CSS console to add/edit page style",
   help: "it opens a CSS console, making it possible to add CSS directive to the current page. Enter 'quit' or 'q' to quit the console.",
-  io: JSterminal.IO({ prefixes: { input: "&gt; ", output: "&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
+  io: JSterminal.IO({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
   execute: function(argv){
     var $cssConsole = this;
     var io = $cssConsole.io;
@@ -151,7 +151,7 @@ JSterminal.register("css", {
 JSterminal.register("js", {
   description: "JavaScript console",
   help: "it opens an interactive JavaScript console. Enter 'quit' or 'q' to quit the console.",
-  io: JSterminal.IO({ prefixes: { input: "&gt; ", output: "&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
+  io: JSterminal.IO({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
   execute: function(argv){
     var $jsConsole = this;
     var io = $jsConsole.io;
