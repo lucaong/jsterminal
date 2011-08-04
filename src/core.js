@@ -54,6 +54,7 @@ var JSterminal = (function() {
         if (typeof registeredCommands[command_name].io == "undefined") {
           registeredCommands[command_name].io = JSterminal.IO();
         }
+        registeredCommands[command_name].io.claim();
         return registeredCommands[command_name].execute(input_array, options);
       } else {
         io.puts("unknown command " + command_name);
@@ -122,7 +123,7 @@ var JSterminal = (function() {
             try {
               JSterminal.interpret(s);
             } finally {
-              JSterminal.terminalIO.release();
+              JSterminal.terminalIO.exit();
             }
           });
         },
@@ -153,8 +154,8 @@ var JSterminal = (function() {
             JSterminal.ioQueue.tidyUp();
           },
           puts: function(request, io) {
-            io.meta.requestsQueue.shift();
             console.log((io.meta.prefixes.output || "") + (request.data.output || ""));
+            io.meta.requestsQueue.shift();
             if (typeof request.callback === "function") {
               request.callback(request.data.output);
             }
@@ -193,7 +194,7 @@ var JSterminal = (function() {
           claiming = true;
           this.enqueue();
         },
-        release: function() {
+        exit: function() {
           claiming = false;
           JSterminal.ioQueue.tidyUp();
         },
@@ -207,7 +208,7 @@ var JSterminal = (function() {
         },
         flushAllRequests: function() {
           this.meta.requestsQueue = [];
-          this.release();
+          this.exit();
         },
         meta: m
       }
@@ -222,7 +223,6 @@ JSterminal.register("help", {
   description: "provides some help",
   help: "with no parameters it shows a list of available commands, passing the name of a command provides help on the command",
   execute: function(argv){
-    //var io = JSterminal.IO();
     if(argv.length === 0) {
       this.io.puts("\nJSterminal\nA list of available commands (type help COMMAND_NAME to get help on a particular command):");
       this.io.puts();
@@ -254,6 +254,7 @@ JSterminal.register("help", {
         }
       }
     }
+    this.io.exit();
   }
 });
 
@@ -262,6 +263,7 @@ JSterminal.register("exit", {
   description: "exit JSterminal",
   help: "it closes JSterminal",
   execute: function(argv){
+    this.io.exit();
     JSterminal.quit();
   }
 });

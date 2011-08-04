@@ -58,13 +58,13 @@ JSterminal.IO = function(opts) {
         JSterminal.ioQueue.push(this);
       }
     },
-    release: function() {
+    exit: function() {
       claiming = false;
       JSterminal.ioQueue.tidyUp();
     },
     flushAllRequests: function() {
       this.meta.requestsQueue = [];
-      this.release();
+      this.exit();
     },
     isClaiming: function() {
       return !!claiming;
@@ -122,7 +122,7 @@ JSterminal.launch = function() {
 };
 
 JSterminal.quit = function() {
-  JSterminal.terminalIO.release();
+  JSterminal.terminalIO.exit();
   JSterminal.ioQueue.empty();
   JSterminal.terminalIO.meta.requestsQueue = [];
   jQuery("#JSterminal_container").remove();

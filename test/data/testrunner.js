@@ -1,21 +1,21 @@
 // Mock IO handlers
 JSterminal.ioQueue.ioHandlers = {
   gets: function(request, io) {
-    var r = io.meta.requestsQueue.shift();
-    if (typeof r.callback === "function") {
-      r.callback("testinput");
+    io.meta.requestsQueue.shift();
+    if (typeof request.callback === "function") {
+      request.callback("testinput");
     }
     JSterminal.ioQueue.tidyUp();
   },
   puts: function(request, io) {
-    $("#out").html(request.data.output);
-    var r = io.meta.requestsQueue.shift();
-    if (typeof r.callback === "function") {
-      r.callback(request.data.output);
+    $("#out").html($("#out").html() + request.data.output);
+    io.meta.requestsQueue.shift();
+    if (typeof request.callback === "function") {
+      request.callback(request.data.output);
     }
     JSterminal.ioQueue.tidyUp();
   },
-  default: function(request, io) {
+  other: function(request, io) {
     io.meta.requestsQueue.shift();
     JSterminal.ioQueue.tidyUp();
   }

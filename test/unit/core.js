@@ -1,5 +1,4 @@
 var testValue = "";
-
 var flushOutput = function() {
   $("#out").html("");
 }
@@ -38,7 +37,6 @@ $(document).ready(function(){
         testValue = {arguments: argv, options: options};
       } else {
         io.gets(function(s) {
-          flushOutput();
           io.puts(s);
           testValue = s;
         });
@@ -55,7 +53,6 @@ $(document).ready(function(){
         testValue = {arguments: argv, options: options};
       } else {
         io.gets(function(s) {
-          flushOutput();
           io.puts(s);
           testValue = s;
         });
@@ -88,8 +85,8 @@ $(document).ready(function(){
     ok(testValue.arguments[0] == "testarg" && testValue.arguments[1] == "testarg2",
       "if the command have no options, there should be no problem");
     
+    flushOutput();
     JSterminal.interpret("testcommand");
-    
     equals(testValue, "testinput",
       "command should be able to get input calling JSterminal.io.gets()");
     
@@ -126,12 +123,12 @@ $(document).ready(function(){
       "double quotes inside single quotes should not be a problem");
   });
 
-  test("'help' command", function() {    
+  test("'help' command", function() {
     flushOutput();
     JSterminal.interpret("help testcommand_no_options");
     equals($("#out").html(), "testcommand_no_options:\n  this is a help text",
       "the 'help' command should provide help on command, if a 'help' property was provided");
-    
+
     flushOutput();
     JSterminal.interpret("help testcommand");
     equals($("#out:contains('test option description')").length, 1,
