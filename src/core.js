@@ -107,12 +107,12 @@ JSterminal.register("help", {
         sortedCommands.push(c);
       }
       sortedCommands.sort();
-      for (var i in sortedCommands) {
+      for (var i in sortedCommands) if (sortedCommands.hasOwnProperty(i))  {
         io.puts("  " + sortedCommands[i] + ": " + (JSterminal.commands[sortedCommands[i]].description || "no description"));
       }
       io.puts();
     } else {
-      for(var i in argv) {
+      for(var i in argv) if (argv.hasOwnProperty(i)) {
         if(JSterminal.commands[argv[i]]) {
           io.puts(argv[i] + ":\n  " + (JSterminal.commands[argv[i]].help || "no help"));
           if(!!JSterminal.commands[argv[i]].options) {

@@ -19,10 +19,8 @@ JSterminal.ioQueue = (function() { // Queue of IO interfaces that claimed contro
       if (!!io && io.meta.requestsQueue.length == 0) {
         if (!io.isClaiming()) {
           queue.shift();
-          console.log("fws shift"); // ###
         }
       }
-      console.log("fws"); // ###
       JSterminal.ioQueue.serveNext();
     },
     serveNext: function() {
@@ -33,24 +31,23 @@ JSterminal.ioQueue = (function() { // Queue of IO interfaces that claimed contro
           switch(request.type) {
             case "gets":
               jQuery("#JSterminal_in_prefix").html(io.meta.prefixes.input || "");
-              console.log("gets"); // ###
               break;
             case "puts":
               jQuery("#JSterminal_in_wrap").before((io.meta.prefixes.output || "")+(request.data.output||"")+"\n");
               jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
               jQuery("#JSterminal_in").focus();
+              if (typeof request.callback == "function") {
+                request.callback(request.data.output);
+              }
               io.meta.requestsQueue.shift();
-              console.log("puts"); // ###
               JSterminal.ioQueue.firstWasServed();
               break;
             default:
               io.meta.requestsQueue.shift();
-              console.log("default"); // ###
               JSterminal.ioQueue.firstWasServed();
           }
         }
       } else {
-        console.log("default IO"); // ###
         JSterminal.meta.termIO.claim();
         JSterminal.meta.termIO.gets(function(s) {
           JSterminal.meta.termIO.puts(s);
@@ -85,8 +82,8 @@ JSterminal.IO = function(opts) {
   var claiming = false;
   for (k in opts) { if (opts.hasOwnProperty(k)) { m[k] = opts[k]; } }
   return {
-    puts: function(out) {
-      this.meta.requestsQueue.push({type: "puts", data: {output: out}});
+    puts: function(out, callback) {
+      this.meta.requestsQueue.push({type: "puts", callback: callback, data: {output: out}});
       this.enqueue();
       JSterminal.ioQueue.serveNext();
     },
