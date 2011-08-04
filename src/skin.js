@@ -12,13 +12,17 @@ JSterminal.ioQueue = (function() { // Queue of IO interfaces that claimed contro
       queue.push(obj);
     },
     first: function() {
-      return !!queue[0] ? queue[0].io : false;
+      return queue[0];
     },
     firstWasServed: function() {
-      var obj = queue[0];
-      if (typeof !!obj && (!obj.claim || !obj.io.isClaiming()) ) {
-        queue.shift();
+      var io = queue[0];
+      if (!!io && io.meta.requestsQueue.length == 0) {
+        if (!io.isClaiming()) {
+          queue.shift();
+          console.log("fws shift"); // ###
+        }
       }
+      console.log("fws"); // ###
       JSterminal.ioQueue.serveNext();
     },
     serveNext: function() {
@@ -29,25 +33,34 @@ JSterminal.ioQueue = (function() { // Queue of IO interfaces that claimed contro
           switch(request.type) {
             case "gets":
               jQuery("#JSterminal_in_prefix").html(io.meta.prefixes.input || "");
+              console.log("gets"); // ###
               break;
             case "puts":
               jQuery("#JSterminal_in_wrap").before((io.meta.prefixes.output || "")+(request.data.output||"")+"\n");
               jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
               jQuery("#JSterminal_in").focus();
               io.meta.requestsQueue.shift();
+              console.log("puts"); // ###
               JSterminal.ioQueue.firstWasServed();
               break;
             default:
               io.meta.requestsQueue.shift();
+              console.log("default"); // ###
               JSterminal.ioQueue.firstWasServed();
           }
         }
       } else {
+        console.log("default IO"); // ###
+        JSterminal.meta.termIO.claim();
         JSterminal.meta.termIO.gets(function(s) {
           JSterminal.meta.termIO.puts(s);
           JSterminal.interpret(s);
+          JSterminal.meta.termIO.release()
         });
       }
+    },
+    contains: function(elem) {
+      return jQuery.inArray(elem, queue) >= 0;
     },
     isEmpty: function() {
       return (!!this.first());
@@ -74,16 +87,12 @@ JSterminal.IO = function(opts) {
   return {
     puts: function(out) {
       this.meta.requestsQueue.push({type: "puts", data: {output: out}});
-      if (!this.isClaiming()) {
-        this.enqueue();
-      }
+      this.enqueue();
       JSterminal.ioQueue.serveNext();
     },
     gets: function(callback) {
       this.meta.requestsQueue.push({type: "gets", callback: callback});
-      if (!this.isClaiming()) {
-        this.enqueue();
-      }
+      this.enqueue();
       JSterminal.ioQueue.serveNext();
     },
     claim: function() {
@@ -91,7 +100,9 @@ JSterminal.IO = function(opts) {
       this.enqueue();
     },
     enqueue: function() {
-      JSterminal.ioQueue.push({io: this, claim: this.isClaiming() ? true : false});
+      if (!JSterminal.ioQueue.contains(this)) {
+        JSterminal.ioQueue.push(this);
+      }
     },
     release: function() {
       claiming = false;
