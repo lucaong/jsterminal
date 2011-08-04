@@ -176,8 +176,8 @@ var JSterminal = (function() {
       var claiming = false;
       var m = {
         prefixes: {
-          input: "Enter input:",
-          output: "Output:"
+          input: "&gt; ",
+          output: ""
         },
         requestsQueue: []
       }

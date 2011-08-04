@@ -25,60 +25,15 @@ JSterminal.ioQueue.ioHandlers = {
   }
 }
 
-// Redefine IO interface
-JSterminal.IO = function(opts) {
-  var m = {
-    prefixes: {
-      input: "&gt; ",
-      output: ""
-    },
-    inputLog: [],
-    inputLogCursor: -1,
-    requestsQueue: [],
-  }
-  var claiming = false;
-  for (k in opts) { if (opts.hasOwnProperty(k)) { m[k] = opts[k]; } }
-  return {
-    puts: function(out, callback) {
-      this.meta.requestsQueue.push({type: "puts", callback: callback, data: {output: out}});
-      this.enqueue();
-      JSterminal.ioQueue.serveNext();
-    },
-    gets: function(callback) {
-      this.meta.requestsQueue.push({type: "gets", callback: callback});
-      this.enqueue();
-      JSterminal.ioQueue.serveNext();
-    },
-    claim: function() {
-      claiming = true;
-      this.enqueue();
-    },
-    enqueue: function() {
-      if (!JSterminal.ioQueue.contains(this)) {
-        JSterminal.ioQueue.push(this);
-      }
-    },
-    exit: function() {
-      claiming = false;
-      JSterminal.ioQueue.tidyUp();
-    },
-    flushAllRequests: function() {
-      this.meta.requestsQueue = [];
-      this.exit();
-    },
-    isClaiming: function() {
-      return !!claiming;
-    },
-    meta: m
-  }
-}
-
 // Handle onkeydown event in #JSterminal_in
 JSterminal.eventHandlers.keyPressed = function(e) {
   e = e || window.event;
   var keycode = e.keyCode || e.which;
   // Handle input in the right scope
   var io = JSterminal.ioQueue.first();
+  // Initialize input log and cursor if necessary
+  io.meta.inputLog = io.meta.inputLog || [];
+  io.meta.inputLogCursor = io.meta.inputLogCursor || -1;
   if(keycode === 13) {
     var i = jQuery("#JSterminal_in").val();
     jQuery("#JSterminal_in").val("");
