@@ -108,10 +108,9 @@ JSterminal.IO = function(opts) {
       claiming = false;
       JSterminal.ioQueue.firstWasServed();
     },
-    reset: function() {
-      claiming = false;
+    flushAllRequests: function() {
       this.meta.requestsQueue = [];
-      JSterminal.ioQueue.firstWasServed();
+      this.release();
     },
     isClaiming: function() {
       return claiming;
@@ -143,7 +142,7 @@ JSterminal.eventHandlers.keyPressed = function(e) {
       if (io == JSterminal.meta.termIO) {
         JSterminal.quit();
       } else {
-        io.reset();
+        io.flushAllRequests();
       }
   } else if (keycode === 38) {
     if(io.meta.inputLogCursor < io.meta.inputLog.length - 1) {
