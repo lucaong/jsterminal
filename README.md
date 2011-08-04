@@ -37,6 +37,7 @@ With some basic JavaScript knowledge it's easy to write custom commands. To add 
       // passing an array of command-line arguments and a key-value object containing command-line options set in the invocation.
       execute: function(argv, options) {
         window.open("http://www.google."+(options["-d"] || "com")+"/search?q="+argv.join("+"));
+        this.io.exit(); // Don't forget to call this.io.exit() at the end of your command
       }
     });
 
