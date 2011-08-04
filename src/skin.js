@@ -32,8 +32,8 @@ JSterminal.eventHandlers.keyPressed = function(e) {
   // Handle input in the right scope
   var io = JSterminal.ioQueue.first();
   // Initialize input log and cursor if necessary
-  io.meta.inputLog = io.meta.inputLog || [];
-  io.meta.inputLogCursor = io.meta.inputLogCursor || -1;
+  io.meta.inputLog = (typeof io.meta.inputLog === "undefined") ? [] : io.meta.inputLog;
+  io.meta.inputLogCursor = (typeof io.meta.inputLogCursor !== "number") ? -1 : io.meta.inputLogCursor;
   if(keycode === 13) {
     var i = jQuery("#JSterminal_in").val();
     jQuery("#JSterminal_in").val("");
@@ -77,7 +77,7 @@ JSterminal.launch = function() {
 };
 
 JSterminal.quit = function() {
-  JSterminal.terminalIO.exit();
+  JSterminal.terminalIO.checkout();
   JSterminal.ioQueue.empty();
   JSterminal.terminalIO.meta.requestsQueue = [];
   jQuery("#JSterminal_container").remove();
