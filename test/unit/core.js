@@ -1,5 +1,9 @@
 var testValue = "";
 
+var flushOutput = function() {
+  $("#out").html("");
+}
+
 $(document).ready(function(){
 
   module("Core");
@@ -29,12 +33,12 @@ $(document).ready(function(){
       }
     },
     execute: function(argv, options) {
-      var io = JSterminal.IO();
+      var io = this.io;
       if (argv.length > 0) {
         testValue = {arguments: argv, options: options};
       } else {
         io.gets(function(s) {
-          io.flush();
+          flushOutput();
           io.puts(s);
           testValue = s;
         });
@@ -46,18 +50,20 @@ $(document).ready(function(){
     description: "a test command",
     help: "this is a help text",
     execute: function(argv, options) {
-      var io = JSterminal.IO();
+      var io = this.io;
       if (argv.length > 0) {
         testValue = {arguments: argv, options: options};
       } else {
         io.gets(function(s) {
-          io.flush();
+          flushOutput();
           io.puts(s);
           testValue = s;
         });
       }
     }
   });
+
+  JSterminal.launch();
 
   test("custom command registration", function(){
     equals(countCommands(), initialNumOfCommands + 2,
@@ -120,14 +126,13 @@ $(document).ready(function(){
       "double quotes inside single quotes should not be a problem");
   });
 
-  test("'help' command", function() {
-    var io = JSterminal.IO();
-    io.flush();
+  test("'help' command", function() {    
+    flushOutput();
     JSterminal.interpret("help testcommand_no_options");
     equals($("#out").html(), "testcommand_no_options:\n  this is a help text",
       "the 'help' command should provide help on command, if a 'help' property was provided");
     
-    io.flush();
+    flushOutput();
     JSterminal.interpret("help testcommand");
     equals($("#out:contains('test option description')").length, 1,
       "the 'help' command should provide a description of options, if available");

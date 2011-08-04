@@ -68,30 +68,146 @@ var JSterminal = (function() {
       if (typeof JSterminal.terminalIO === "undefined") {
         JSterminal.terminalIO = JSterminal.IO();
       }
-      var command = prompt("Insert a command:", "help");
-      if (command) {
-        JSterminal.interpret(command);
-      }
+      JSterminal.ioQueue.scheduleDefault();
     },
     // Function quit(): called to quit the terminal
     quit: function() {
       return false;
     },
+    // Input/Output queue
+    ioQueue: (function() { // Queue of IO interfaces that claimed control of input/output
+      var queue = [];
+      return {
+        push: function(obj) {
+          queue.push(obj);
+        },
+        first: function() {
+          return queue[0];
+        },
+        tidyUp: function() {
+          var io = queue[0];
+          if (!!io && io.meta.requestsQueue.length == 0) {
+            if (!io.isClaiming()) {
+              queue.shift();
+            }
+          }
+          JSterminal.ioQueue.serveNext();
+        },
+        serveNext: function() {
+          var io = JSterminal.ioQueue.first();
+          if (!!io) {
+            var request = io.meta.requestsQueue[0];
+            if (!!request) {
+              switch(request.type) {
+                case "gets":
+                  this.ioHandlers.gets(request, io);
+                  break;
+                case "puts":
+                  this.ioHandlers.puts(request, io);
+                  break;
+                default:
+                  this.ioHandlers.other(request, io);
+              }
+            } else {
+              return true;
+            }
+          } else {
+            this.scheduleDefault();
+          }
+        },
+        scheduleDefault: function() {
+          JSterminal.terminalIO.claim();
+          JSterminal.terminalIO.gets(function(s) {
+            JSterminal.terminalIO.puts(s);
+            try {
+              JSterminal.interpret(s);
+            } finally {
+              JSterminal.terminalIO.release();
+            }
+          });
+        },
+        contains: function(elem) {
+          if (!!Array.prototype.indexOf) {
+            return queue.indexOf(elem) >= 0;
+          } else {
+            for(var e in queue) if (queue.hasOwnProperty(e)) {
+              if(queue[e] === elem){
+                return true;
+              }
+            }
+            return false;
+          }
+        },
+        isEmpty: function() {
+          return (!!this.first());
+        },
+        empty: function() {
+          queue = [];
+        },
+        ioHandlers: {
+          gets: function(request, io) {
+            io.meta.requestsQueue.shift();
+            if (typeof request.callback === "function") {
+              request.callback(prompt(io.meta.prefixes.input || ""));
+            }
+            JSterminal.ioQueue.tidyUp();
+          },
+          puts: function(request, io) {
+            io.meta.requestsQueue.shift();
+            console.log((io.meta.prefixes.output || "") + (request.data.output || ""));
+            if (typeof request.callback === "function") {
+              request.callback(request.data.output);
+            }
+            JSterminal.ioQueue.tidyUp();
+          },
+          other: function(request, io) {
+            io.meta.requestsQueue.shift();
+            JSterminal.ioQueue.tidyUp();
+          }
+        }
+      }
+    })(),
     // Input/Output interface
     IO: function(opts) {
+      var claiming = false;
       var m = {
         prefixes: {
           input: "Enter input:",
           output: "Output:"
-        }
+        },
+        requestsQueue: []
       }
       for (k in opts) { if (opts.hasOwnProperty(k)) { m[k] = opts[k]; } }
       return {
-        puts: function(out) {
-          console.log((this.meta.prefixes.output || "") + (out || ""));
+        puts: function(out, callback) {
+          this.meta.requestsQueue.push({type: "puts", callback: callback, data: {output: out}});
+          this.enqueue();
+          JSterminal.ioQueue.serveNext();
         },
         gets: function(callback) {
-          callback(prompt(this.meta.prefixes.input || "", ""));
+          this.meta.requestsQueue.push({type: "gets", callback: callback});
+          this.enqueue();
+          JSterminal.ioQueue.serveNext();
+        },
+        claim: function() {
+          claiming = true;
+          this.enqueue();
+        },
+        release: function() {
+          claiming = false;
+          JSterminal.ioQueue.tidyUp();
+        },
+        isClaiming: function() {
+          return !!claiming;
+        },
+        enqueue: function() {
+          if (!JSterminal.ioQueue.contains(this)) {
+            JSterminal.ioQueue.push(this);
+          }
+        },
+        flushAllRequests: function() {
+          this.meta.requestsQueue = [];
+          this.release();
         },
         meta: m
       }

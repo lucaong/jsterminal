@@ -3,73 +3,27 @@
 // Create JSterminal.eventHandlers namespace if they do not exist
 JSterminal.eventHandlers = JSterminal.eventHandlers || {};
 
-// Implement IO queue
-JSterminal.ioQueue = (function() { // Queue of IO interfaces that claimed control of input/output
-  var queue = [];
-  return {
-    push: function(obj) {
-      queue.push(obj);
-    },
-    first: function() {
-      return queue[0];
-    },
-    tidyUp: function() {
-      var io = queue[0];
-      if (!!io && io.meta.requestsQueue.length == 0) {
-        if (!io.isClaiming()) {
-          queue.shift();
-        }
-      }
-      JSterminal.ioQueue.serveNext();
-    },
-    serveNext: function() {
-      var io = JSterminal.ioQueue.first();
-      if (!!io) {
-        var request = io.meta.requestsQueue[0];
-        if (!!request) {
-          switch(request.type) {
-            case "gets":
-              jQuery("#JSterminal_in_prefix").html(io.meta.prefixes.input || "");
-              jQuery("#JSterminal_in").width(jQuery("#JSterminal_in_wrap").width() - jQuery("#JSterminal_in_prefix").width() - 20);
-              break;
-            case "puts":
-              jQuery("#JSterminal_in_wrap").before((io.meta.prefixes.output || "")+(request.data.output||"")+"\n");
-              jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
-              jQuery("#JSterminal_in").focus();
-              if (typeof request.callback == "function") {
-                request.callback(request.data.output);
-              }
-              io.meta.requestsQueue.shift();
-              JSterminal.ioQueue.tidyUp();
-              break;
-            default:
-              io.meta.requestsQueue.shift();
-              JSterminal.ioQueue.tidyUp();
-          }
-        }
-      } else {
-        JSterminal.terminalIO.claim();
-        JSterminal.terminalIO.gets(function(s) {
-          JSterminal.terminalIO.puts(s);
-          try {
-            JSterminal.interpret(s);
-          } finally {
-            JSterminal.terminalIO.release();
-          }
-        });
-      }
-    },
-    contains: function(elem) {
-      return jQuery.inArray(elem, queue) >= 0;
-    },
-    isEmpty: function() {
-      return (!!this.first());
-    },
-    empty: function() {
-      queue = [];
+// Redefine IO handlers
+JSterminal.ioQueue.ioHandlers = {
+  gets: function(request, io) {
+    jQuery("#JSterminal_in_prefix").html(io.meta.prefixes.input || "");
+    jQuery("#JSterminal_in").width(jQuery("#JSterminal_in_wrap").width() - jQuery("#JSterminal_in_prefix").width() - 20);
+  },
+  puts: function(request, io) {
+    jQuery("#JSterminal_in_wrap").before((io.meta.prefixes.output || "")+(request.data.output||"")+"\n");
+    jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
+    jQuery("#JSterminal_in").focus();
+    io.meta.requestsQueue.shift();
+    if (typeof request.callback == "function") {
+      request.callback(request.data.output);
     }
+    JSterminal.ioQueue.tidyUp();
+  },
+  other: function(request, io) {
+    io.meta.requestsQueue.shift();
+    JSterminal.ioQueue.tidyUp();
   }
-})();
+}
 
 // Redefine IO interface
 JSterminal.IO = function(opts) {
@@ -113,7 +67,7 @@ JSterminal.IO = function(opts) {
       this.release();
     },
     isClaiming: function() {
-      return claiming;
+      return !!claiming;
     },
     meta: m
   }
