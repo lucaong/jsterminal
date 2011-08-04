@@ -51,8 +51,11 @@ JSterminal.ioQueue = (function() { // Queue of IO interfaces that claimed contro
         JSterminal.meta.termIO.claim();
         JSterminal.meta.termIO.gets(function(s) {
           JSterminal.meta.termIO.puts(s);
-          JSterminal.interpret(s);
-          JSterminal.meta.termIO.release()
+          try {
+            JSterminal.interpret(s);
+          } finally {
+            JSterminal.meta.termIO.release();
+          }
         });
       }
     },
@@ -103,7 +106,12 @@ JSterminal.IO = function(opts) {
     },
     release: function() {
       claiming = false;
-      JSterminal.ioQueue.serveNext();
+      JSterminal.ioQueue.firstWasServed();
+    },
+    reset: function() {
+      claiming = false;
+      this.meta.requestsQueue = [];
+      JSterminal.ioQueue.firstWasServed();
     },
     isClaiming: function() {
       return claiming;
@@ -132,7 +140,11 @@ JSterminal.eventHandlers.keyPressed = function(e) {
       JSterminal.ioQueue.firstWasServed();
     }
   } else if (keycode === 27) {
-      JSterminal.quit();
+      if (io == JSterminal.meta.termIO) {
+        JSterminal.quit();
+      } else {
+        io.reset();
+      }
   } else if (keycode === 38) {
     if(io.meta.inputLogCursor < io.meta.inputLog.length - 1) {
       jQuery("#JSterminal_in").val(io.meta.inputLog[++io.meta.inputLogCursor]);
