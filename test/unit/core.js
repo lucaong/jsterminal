@@ -35,13 +35,15 @@ $(document).ready(function(){
       var io = this.io;
       if (argv.length > 0) {
         testValue = {arguments: argv, options: options};
+        io.checkout();
       } else {
         io.gets(function(s) {
-          io.puts(s);
-          testValue = s;
+          io.puts(s, function(s) {
+            testValue = s;
+            io.checkout();
+          });
         });
       }
-      io.exit();
     }
   });
 
@@ -52,13 +54,15 @@ $(document).ready(function(){
       var io = this.io;
       if (argv.length > 0) {
         testValue = {arguments: argv, options: options};
+        io.checkout();
       } else {
         io.gets(function(s) {
-          io.puts(s);
-          testValue = s;
+          io.puts(s, function(s) {
+            testValue = s;
+            io.checkout();
+          });
         });
       }
-      io.exit();
     }
   });
 
@@ -128,7 +132,7 @@ $(document).ready(function(){
   test("'help' command", function() {
     flushOutput();
     JSterminal.interpret("help testcommand_no_options");
-    equals($("#out").html(), "testcommand_no_options:\n  this is a help text",
+    equals($("#out").html(), "testcommand_no_options:\n  this is a help text\n",
       "the 'help' command should provide help on command, if a 'help' property was provided");
 
     flushOutput();

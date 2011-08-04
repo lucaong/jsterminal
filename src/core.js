@@ -54,11 +54,10 @@ var JSterminal = (function() {
         if (typeof registeredCommands[command_name].io == "undefined") {
           registeredCommands[command_name].io = JSterminal.IO();
         }
-        registeredCommands[command_name].io.claim();
+        registeredCommands[command_name].io.reserve();
         return registeredCommands[command_name].execute(input_array, options);
       } else {
-        io.puts("unknown command " + command_name);
-        io.puts("type 'help' for a list of available commands");
+        io.puts("unknown command " + command_name + "\ntype 'help' for a list of available commands");
         return false;
       }
     },
@@ -73,13 +72,13 @@ var JSterminal = (function() {
     },
     // Function quit(): called to quit the terminal
     quit: function() {
-      JSterminal.terminalIO.exit();
+      JSterminal.terminalIO.checkout();
       JSterminal.ioQueue.empty();
       JSterminal.terminalIO.meta.requestsQueue = [];
       return false;
     },
     // Input/Output queue
-    ioQueue: (function() { // Queue of IO interfaces that claimed control of input/output
+    ioQueue: (function() { // Queue of IO interfaces that reserved control of input/output
       var queue = [];
       return {
         push: function(obj) {
@@ -91,7 +90,7 @@ var JSterminal = (function() {
         tidyUp: function() {
           var io = queue[0];
           if (!!io && io.meta.requestsQueue.length == 0) {
-            if (!io.isClaiming()) {
+            if (!io.isReserving()) {
               queue.shift();
             }
           }
@@ -120,14 +119,15 @@ var JSterminal = (function() {
           }
         },
         scheduleDefault: function() {
-          JSterminal.terminalIO.claim();
+          JSterminal.terminalIO.reserve();
           JSterminal.terminalIO.gets(function(s) {
-            JSterminal.terminalIO.puts(s);
-            try {
-              JSterminal.interpret(s);
-            } finally {
-              JSterminal.terminalIO.exit();
-            }
+            JSterminal.terminalIO.puts(s, function() {
+              try {
+                JSterminal.interpret(s);
+              } finally {
+                JSterminal.terminalIO.checkout();
+              }
+            });
           });
         },
         contains: function(elem) {
@@ -173,7 +173,7 @@ var JSterminal = (function() {
     })(),
     // Input/Output interface
     IO: function(opts) {
-      var claiming = false;
+      var reserving = false;
       var m = {
         prefixes: {
           input: "&gt; ",
@@ -193,16 +193,16 @@ var JSterminal = (function() {
           this.enqueue();
           JSterminal.ioQueue.serveNext();
         },
-        claim: function() {
-          claiming = true;
+        reserve: function() {
+          reserving = true;
           this.enqueue();
         },
-        exit: function() {
-          claiming = false;
+        checkout: function() {
+          reserving = false;
           JSterminal.ioQueue.tidyUp();
         },
-        isClaiming: function() {
-          return !!claiming;
+        isReserving: function() {
+          return !!reserving;
         },
         enqueue: function() {
           if (!JSterminal.ioQueue.contains(this)) {
@@ -211,63 +211,10 @@ var JSterminal = (function() {
         },
         flushAllRequests: function() {
           this.meta.requestsQueue = [];
-          this.exit();
+          this.checkout();
         },
         meta: m
       }
     }
   };
 })();
-
-// BASIC COMMANDS REGISTRATION
-
-// help: provides a list of available commands and help on specific commands
-JSterminal.register("help", {
-  description: "provides some help",
-  help: "with no parameters it shows a list of available commands, passing the name of a command provides help on the command",
-  execute: function(argv){
-    var io = this.io;
-    if(argv.length === 0) {
-      io.puts("\nJSterminal\nA list of available commands (type help COMMAND_NAME to get help on a particular command):");
-      io.puts();
-      var sortedCommands = [];
-      for (var c in JSterminal.commands) if (JSterminal.commands.hasOwnProperty(c)) {
-        sortedCommands.push(c);
-      }
-      sortedCommands.sort();
-      for (var i in sortedCommands) if (sortedCommands.hasOwnProperty(i))  {
-        io.puts("  " + sortedCommands[i] + ": " + (JSterminal.commands[sortedCommands[i]].description || "no description"));
-      }
-      io.puts();
-    } else {
-      for(var i in argv) if (argv.hasOwnProperty(i)) {
-        if(JSterminal.commands[argv[i]]) {
-          io.puts(argv[i] + ":\n  " + (JSterminal.commands[argv[i]].help || "no help"));
-          if(!!JSterminal.commands[argv[i]].options) {
-            io.puts("\n  OPTIONS:");
-            for(var j in JSterminal.commands[argv[i]].options) {
-              var option_names = !!JSterminal.commands[argv[i]].options[j].alias ?
-                [j, JSterminal.commands[argv[i]].options[j].alias] :
-                [j];
-              io.puts("    " + option_names.join(", ") + "\n      " + (JSterminal.commands[argv[i]].options[j].description || "no description") + "\n");
-            }
-          }
-          io.puts("");
-        } else {
-          io.puts("unknown command " + argv[i]);
-        }
-      }
-    }
-    io.exit();
-  }
-});
-
-// exit: closes the terminal
-JSterminal.register("exit", {
-  description: "exit JSterminal",
-  help: "it closes JSterminal",
-  execute: function(argv){
-    this.io.exit();
-    JSterminal.quit();
-  }
-});
