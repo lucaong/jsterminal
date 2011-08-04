@@ -1,7 +1,6 @@
 // SKIN SPECIFIC CODE
 
-// Create JSterminal.meta and JSterminal.eventHandlers namespaces if they do not exist
-JSterminal.meta = JSterminal.meta || {};
+// Create JSterminal.eventHandlers namespace if they do not exist
 JSterminal.eventHandlers = JSterminal.eventHandlers || {};
 
 // Implement IO queue
@@ -14,7 +13,7 @@ JSterminal.ioQueue = (function() { // Queue of IO interfaces that claimed contro
     first: function() {
       return queue[0];
     },
-    firstWasServed: function() {
+    tidyUp: function() {
       var io = queue[0];
       if (!!io && io.meta.requestsQueue.length == 0) {
         if (!io.isClaiming()) {
@@ -41,11 +40,11 @@ JSterminal.ioQueue = (function() { // Queue of IO interfaces that claimed contro
                 request.callback(request.data.output);
               }
               io.meta.requestsQueue.shift();
-              JSterminal.ioQueue.firstWasServed();
+              JSterminal.ioQueue.tidyUp();
               break;
             default:
               io.meta.requestsQueue.shift();
-              JSterminal.ioQueue.firstWasServed();
+              JSterminal.ioQueue.tidyUp();
           }
         }
       } else {
@@ -107,7 +106,7 @@ JSterminal.IO = function(opts) {
     },
     release: function() {
       claiming = false;
-      JSterminal.ioQueue.firstWasServed();
+      JSterminal.ioQueue.tidyUp();
     },
     flushAllRequests: function() {
       this.meta.requestsQueue = [];
@@ -134,7 +133,7 @@ JSterminal.eventHandlers.keyPressed = function(e) {
     var request = io.meta.requestsQueue[0];
     if (!!request && request.type == "gets") {
       io.meta.requestsQueue.shift().callback(i);
-      JSterminal.ioQueue.firstWasServed();
+      JSterminal.ioQueue.tidyUp();
     }
   } else if (keycode === 27) {
       if (io == JSterminal.terminalIO) {
