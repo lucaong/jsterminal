@@ -6,15 +6,15 @@ var flushOutput = function() {
 $(document).ready(function(){
 
   module("Core");
-  
+
   var countCommands = function() {
     var count = 0;
-    for(var n in JSterminal.commands) count++;
+    for(var n in JSterminal.commands) if (JSterminal.commands.hasOwnProperty(n)) count++;
     return count;
   }
-  
+
   initialNumOfCommands = countCommands();
-  
+
   JSterminal.register("testcommand", {
     description: "a test command",
     help: "this is a help text",
@@ -41,6 +41,7 @@ $(document).ready(function(){
           testValue = s;
         });
       }
+      io.exit();
     }
   });
 
@@ -57,12 +58,13 @@ $(document).ready(function(){
           testValue = s;
         });
       }
+      io.exit();
     }
   });
 
   JSterminal.launch();
 
-  test("custom command registration", function(){
+  test("custom command registration", function() {
     equals(countCommands(), initialNumOfCommands + 2,
       "after registration of two new commands, there should be two more commands");
   });
@@ -71,53 +73,53 @@ $(document).ready(function(){
     JSterminal.interpret("testcommand testarg -n 123 -o testarg2 --alias 321");
     ok(testValue.arguments[0] == "testarg" && testValue.arguments[1] == "testarg2",
       "execute() should access the array of arguments");
-      
+
     equals(testValue.options["-n"], "123",
       "execute() should access options with argument");
-    
+
     equals(testValue.options["-a"], "321",
       "options can be aliased");
-      
+
     ok(testValue.options["-o"],
       "execute() should access options without argument");
-    
+
     JSterminal.interpret("testcommand_no_options testarg testarg2");
     ok(testValue.arguments[0] == "testarg" && testValue.arguments[1] == "testarg2",
       "if the command have no options, there should be no problem");
-    
+
     flushOutput();
     JSterminal.interpret("testcommand");
     equals(testValue, "testinput",
       "command should be able to get input calling JSterminal.io.gets()");
-    
+
     equals($("#out").html(), "testinput",
       "command should be able to print output calling JSterminal.io.puts()");
   });
 
-  test("handling non-existent commands", function(){
+  test("handling non-existent commands", function() {
     equals(JSterminal.interpret("nonexistingcommand arg"), false,
       "non-existent command should return false");
   });
 
-  test("trailing spaces and multiple spaces between arguments", function(){
+  test("trailing spaces and multiple spaces between arguments", function() {
     JSterminal.interpret(" testcommand ok ");
     equals(testValue.arguments[0], "ok",
       "trailing spaces should not be a problem");
-    
+
     JSterminal.interpret("testcommand  ok")
     equals(testValue.arguments[0], "ok",
       "multiple spaces should not be a problem");
   });
 
-  test("quoted arguments", function(){
+  test("quoted arguments", function() {
     JSterminal.interpret('testcommand " some text  with spaces "');
     equals(testValue.arguments[0], " some text  with spaces ",
       "arguments containing spaces, if quoted, should not be a problem");
-    
+
     JSterminal.interpret('testcommand "oye \'como\' va"');
     equals(testValue.arguments[0], "oye 'como' va",
       "single quotes inside double quotes should not be a problem");
-    
+
     JSterminal.interpret('testcommand \'oye "como" va\'');
     equals(testValue.arguments[0], 'oye "como" va',
       "double quotes inside single quotes should not be a problem");
@@ -133,9 +135,11 @@ $(document).ready(function(){
     JSterminal.interpret("help testcommand");
     equals($("#out:contains('test option description')").length, 1,
       "the 'help' command should provide a description of options, if available");
-      
+
     equals($("#out:contains('-a, --alias')").length, 1,
       "the 'help' command should list options with their aliases");
   });
+
+  JSterminal.quit();
 
 });

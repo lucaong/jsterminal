@@ -136,27 +136,27 @@ JSterminal.register("css", {
   help: "it opens a CSS console, making it possible to add CSS directive to the current page. Enter 'quit' or 'q' to quit the console.",
   io: JSterminal.IO({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
   execute: function(argv){
-    var $cssConsole = this;
-    var io = this.io;
-    this.cache = this.cache || "";
-    this.addStyle = function(css) {
+    var $css = this;
+    var io = $css.io;
+    $css.cache = $css.cache || "";
+    $css.addStyle = function(css) {
       if (css != 'q' && css != 'quit' && css != 'Q') {
         io.puts(css);
-        this.cache += "\n"+css;
+        $css.cache += "\n"+css;
         if (!document.getElementById("JSterminal-css-console-style")) {
           var style = document.createElement("style");
           style.id = "JSterminal-css-console-style";
           style.type = "text/css";
           document.body.appendChild(style);
         }
-        document.getElementById("JSterminal-css-console-style").innerHTML = this.cache;
-        io.gets(this.addStyle);
+        document.getElementById("JSterminal-css-console-style").innerHTML = $css.cache;
+        io.gets($css.addStyle);
       } else {
         io.puts("CSS console closed\n");
         io.exit();
       }
     }
-    io.gets(this.addStyle);
+    io.gets($css.addStyle);
   }
 });
 
@@ -164,9 +164,10 @@ JSterminal.register("js", {
   description: "JavaScript console",
   help: "it opens an interactive JavaScript console. Enter 'quit' or 'q' to quit the console.",
   io: JSterminal.IO({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
-  execute: function(argv){
-    var io = this.io;
-    this.globalEval = (function() {
+  execute: function(argv) {
+    var $js = this;
+    var io = $js.io;
+    $js.globalEval = (function() {
       // globalEval code by kangax http://perfectionkills.com/global-eval-what-are-the-options/
       var isIndirectEvalGlobal = (function(original, Object) {
         try {
@@ -191,7 +192,7 @@ JSterminal.register("js", {
       if (js != 'q' && js != 'quit' && js != 'Q') {
         io.puts(js);
         try {
-          var r = this.globalEval(js);
+          var r = $js.globalEval(js);
           switch(typeof r) {
             case "number":
               io.puts(r);
@@ -217,12 +218,12 @@ JSterminal.register("js", {
         } catch(err) {
           io.puts(err.name+": "+err.message);
         }
-        io.gets(this.interpretJS);
+        io.gets($js.interpretJS);
       } else {
         io.puts("JavaScript console closed\n");
         io.exit();
       }
     }
-    io.gets(this.interpretJS);
+    io.gets($js.interpretJS);
   }
 });
