@@ -31,7 +31,7 @@ var JSterminal = (function() {
       var input_array = input_string.replace(/^\s+|\s+$/g, "").match(/[^"'\s]+|"[^"]*"|'[^']*'/g);
       var command_name = input_array.shift();
       var options = {};
-      var io = JSterminal.IO();
+      var io = this.terminalIO;
       
       // Parse options and arguments
       for(i = 0; i < input_array.length; i++) {
@@ -49,7 +49,11 @@ var JSterminal = (function() {
       }
       
       // Execute command, or return false if it does not exist
-      if(registeredCommands[command_name]) {
+      if(!!registeredCommands[command_name]) {
+        // Istantiate an IO interface for this command, if not already present
+        if (typeof registeredCommands[command_name].io == "undefined") {
+          registeredCommands[command_name].io = JSterminal.IO();
+        }
         return registeredCommands[command_name].execute(input_array, options);
       } else {
         io.puts("unknown command " + command_name);
@@ -60,6 +64,10 @@ var JSterminal = (function() {
     // Object commands: object containing registered commands
     commands: registeredCommands,
     launch: function() {
+      // Create an IO interface for the terminal itself if not existing
+      if (typeof JSterminal.terminalIO === "undefined") {
+        JSterminal.terminalIO = JSterminal.IO();
+      }
       var command = prompt("Insert a command:", "help");
       if (command) {
         JSterminal.interpret(command);
@@ -98,35 +106,35 @@ JSterminal.register("help", {
   description: "provides some help",
   help: "with no parameters it shows a list of available commands, passing the name of a command provides help on the command",
   execute: function(argv){
-    var io = JSterminal.IO();
+    //var io = JSterminal.IO();
     if(argv.length === 0) {
-      io.puts("\nJSterminal\nA list of available commands (type help COMMAND_NAME to get help on a particular command):");
-      io.puts();
+      this.io.puts("\nJSterminal\nA list of available commands (type help COMMAND_NAME to get help on a particular command):");
+      this.io.puts();
       var sortedCommands = [];
       for (var c in JSterminal.commands) if (JSterminal.commands.hasOwnProperty(c)) {
         sortedCommands.push(c);
       }
       sortedCommands.sort();
       for (var i in sortedCommands) if (sortedCommands.hasOwnProperty(i))  {
-        io.puts("  " + sortedCommands[i] + ": " + (JSterminal.commands[sortedCommands[i]].description || "no description"));
+        this.io.puts("  " + sortedCommands[i] + ": " + (JSterminal.commands[sortedCommands[i]].description || "no description"));
       }
-      io.puts();
+      this.io.puts();
     } else {
       for(var i in argv) if (argv.hasOwnProperty(i)) {
         if(JSterminal.commands[argv[i]]) {
-          io.puts(argv[i] + ":\n  " + (JSterminal.commands[argv[i]].help || "no help"));
+          this.io.puts(argv[i] + ":\n  " + (JSterminal.commands[argv[i]].help || "no help"));
           if(!!JSterminal.commands[argv[i]].options) {
-            io.puts("\n  OPTIONS:");
+            this.io.puts("\n  OPTIONS:");
             for(var j in JSterminal.commands[argv[i]].options) {
               var option_names = !!JSterminal.commands[argv[i]].options[j].alias ?
                 [j, JSterminal.commands[argv[i]].options[j].alias] :
                 [j];
-              io.puts("    " + option_names.join(", ") + "\n      " + (JSterminal.commands[argv[i]].options[j].description || "no description") + "\n");
+              this.io.puts("    " + option_names.join(", ") + "\n      " + (JSterminal.commands[argv[i]].options[j].description || "no description") + "\n");
             }
           }
-          io.puts("");
+          this.io.puts("");
         } else {
-          io.puts("unknown command " + argv[i]);
+          this.io.puts("unknown command " + argv[i]);
         }
       }
     }
