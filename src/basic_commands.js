@@ -7,6 +7,7 @@ JSterminal.register("help", {
   execute: function(argv){
     var io = this.io;
     var out = "";
+    io.reserve();
     if(argv.length === 0) {
       out += "\nJSterminal\nA list of available commands (type help COMMAND_NAME to get help on a particular command):\n";
       var sortedCommands = [];
@@ -46,7 +47,6 @@ JSterminal.register("exit", {
   description: "exit JSterminal",
   help: "it closes JSterminal",
   execute: function(argv){
-    this.io.checkout();
     JSterminal.quit();
   }
 });

@@ -5,7 +5,6 @@ JSterminal.register("tweet", {
   help: "it shares the current URL on Twitter, adding (in order of precedence) the text passed as argument or the page title in the status text",
   execute: function(argv){
     window.open("http://twitter.com/share?url="+location.href+"&text="+encodeURI(argv.join(" ") || document.title));
-    this.io.checkout();
   }
 });
 
@@ -21,7 +20,6 @@ JSterminal.register("s", {
   },
   execute: function(argv, options){
     window.open("http://www.google."+(options["-d"] || "com")+"/search?q="+argv.join("+"));
-    this.io.checkout();
   }
 });
 
@@ -30,7 +28,6 @@ JSterminal.register("def", {
   help: "it searches the string passed as argument for a definition on Google\nSynopsis:\n  s SEARCH_QUERY",
   execute: function(argv){
     window.open("http://www.google.com/search?q=define:"+argv.join("+"));
-    this.io.checkout();
   }
 });
 
@@ -46,7 +43,6 @@ JSterminal.register("w", {
   help: "it searches the string passed as argument on Wikipedia",
   execute: function(argv, options){
     window.open("http://www.wikipedia.org/search-redirect.php?search="+argv.join("+")+"&language="+(options["-l"] || "en"));
-    this.io.checkout();
   }
 });
 
@@ -55,7 +51,6 @@ JSterminal.register("deli", {
   help: "it bookmarks the current page on Delicious\nSynopsis:\n  deli [TITLE] [NOTES]",
   execute: function(argv){
     window.open("http://delicious.com/save?url="+location.href+"&title="+(argv[0] || document.title)+"&v=5&jump=yes&notes="+(argv[1]||""));
-    this.io.checkout();
   }
 });
 
@@ -64,7 +59,6 @@ JSterminal.register("tr", {
   help: "it translates the current page with Google Translate\nSynopsis:\n  tr [DESTINATION_LANGUAGE]",
   execute: function(argv){
     window.open("http://translate.google.com/translate?u="+location.href+"&tl="+(argv[0] || "en"));
-    this.io.checkout();
   }
 });
 
@@ -73,7 +67,6 @@ JSterminal.register("iten", {
   help: "it translates a word or expression from Italian to English using WordReference\nSynopsis:\n  iten WORD",
   execute: function(argv){
     window.open("http://www.wordreference.com/iten/"+argv.join("+").replace(/ +/, "+"));
-    this.io.checkout();
   }
 });
 
@@ -82,7 +75,6 @@ JSterminal.register("enit", {
   help: "it translates a word or expression from English to Italian using WordReference\nSynopsis:\n  enit WORD",
   execute: function(argv){
     window.open("http://www.wordreference.com/enit/"+argv.join("+").replace(/ +/, "+"));
-    this.io.checkout();
   }
 });
 
@@ -91,7 +83,6 @@ JSterminal.register("map", {
   help: "it searches the string passed as argument on Google Maps\nSynopsis:\n  map SEARCH_QUERY",
   execute: function(argv){
     window.open("http://www.google.com/maps?q="+argv.join("+"));
-    this.io.checkout();
   }
 });
 
@@ -100,7 +91,6 @@ JSterminal.register("img", {
   help: "it searches the string passed as argument on Google Image Search\nSynopsis:\n  img SEARCH_QUERY",
   execute: function(argv){
     window.open("http://www.google.com/images?q="+argv.join("+"));
-    this.io.checkout();
   }
 });
 
@@ -109,7 +99,6 @@ JSterminal.register("tube", {
   help: "it searches the string passed as argument on YouTube\nSynopsis:\n  tube SEARCH_QUERY",
   execute: function(argv){
     window.open("http://www.youtube.com/results?search_query="+argv.join("+"));
-    this.io.checkout();
   }
 });
 
@@ -118,7 +107,6 @@ JSterminal.register("mail", {
   help: "it opens your default email application pre-filling a new email with a link to the current page\nSynopsis:\n  mail [RECIPIENTS] [SUBJECT]",
   execute: function(argv){
     window.open("mailto:"+(argv[0]||"")+"?subject="+(argv[1]||document.title)+"&body="+location.href+"%0A%0A"+argv.join("+"));
-    this.io.checkout();
   }
 });
 
@@ -127,7 +115,6 @@ JSterminal.register("gmail", {
   help: "it opens Gmail pre-filling a new email with a link to the current page\nSynopsis:\n  gmail [RECIPIENTS] [SUBJECT]",
   execute: function(argv){
     window.open("https://mail.google.com/mail/?view=cm&tf=1&to=" + (argv[0] || "") + "&cc=&su=" + (argv[1] || document.title) + "&body=" + location.href + "&fs=1",'_blank','location=yes,menubar=yes,resizable=yes,width=800,height=600');
-    this.io.checkout();
   }
 });
 
@@ -158,6 +145,7 @@ JSterminal.register("css", {
         });
       }
     }
+    io.reserve();
     io.gets($css.addStyle);
   }
 });
@@ -228,6 +216,7 @@ JSterminal.register("js", {
         });
       }
     }
+    io.reserve();
     io.gets($js.interpretJS);
   }
 });
