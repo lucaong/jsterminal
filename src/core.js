@@ -54,7 +54,6 @@ var JSterminal = (function() {
         if (typeof registeredCommands[command_name].io == "undefined") {
           registeredCommands[command_name].io = JSterminal.IO();
         }
-        registeredCommands[command_name].io.reserve();
         return registeredCommands[command_name].execute(input_array, options);
       } else {
         io.puts("unknown command " + command_name + "\ntype 'help' for a list of available commands");

@@ -35,8 +35,8 @@ $(document).ready(function(){
       var io = this.io;
       if (argv.length > 0) {
         testValue = {arguments: argv, options: options};
-        io.checkout();
       } else {
+        io.reserve();
         io.gets(function(s) {
           io.puts(s, function(s) {
             testValue = s;
@@ -54,8 +54,8 @@ $(document).ready(function(){
       var io = this.io;
       if (argv.length > 0) {
         testValue = {arguments: argv, options: options};
-        io.checkout();
       } else {
+        io.reserve();
         io.gets(function(s) {
           io.puts(s, function(s) {
             testValue = s;
