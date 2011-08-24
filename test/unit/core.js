@@ -90,7 +90,9 @@ $(document).ready(function(){
     JSterminal.interpret("testcommand_no_options testarg testarg2");
     ok(testValue.arguments[0] == "testarg" && testValue.arguments[1] == "testarg2",
       "if the command have no options, there should be no problem");
+  });
 
+  test("Input/Output", function() {
     flushOutput();
     JSterminal.interpret("testcommand");
     equals(testValue, "testinput",

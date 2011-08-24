@@ -100,15 +100,11 @@ var JSterminal = (function() {
           if (!!io) {
             var request = io.meta.requestsQueue[0];
             if (!!request) {
-              switch(request.type) {
-                case "gets":
-                  this.ioHandlers.gets(request, io);
-                  break;
-                case "puts":
-                  this.ioHandlers.puts(request, io);
-                  break;
-                default:
-                  this.ioHandlers.other(request, io);
+              // Use the appropriate ioHandler depending on request type
+              if(this.ioHandlers.hasOwnProperty(request.type)) {
+                this.ioHandlers[request.type](request, io);
+              } else {
+                this.ioHandlers.default(request, io);
               }
             } else {
               return true;
@@ -151,19 +147,19 @@ var JSterminal = (function() {
           gets: function(request, io) {
             io.meta.requestsQueue.shift();
             if (typeof request.callback === "function") {
-              request.callback(prompt(io.meta.prefixes.input || ""));
+              request.callback(prompt(request.options.prefix || io.meta.prefixes.input || ""));
             }
             JSterminal.ioQueue.tidyUp();
           },
           puts: function(request, io) {
-            console.log((io.meta.prefixes.output || "") + (request.data.output || ""));
+            console.log((request.options.prefix || io.meta.prefixes.output || "") + (request.data.output || ""));
             io.meta.requestsQueue.shift();
             if (typeof request.callback === "function") {
               request.callback(request.data.output);
             }
             JSterminal.ioQueue.tidyUp();
           },
-          other: function(request, io) {
+          default: function(request, io) {
             io.meta.requestsQueue.shift();
             JSterminal.ioQueue.tidyUp();
           }
@@ -182,13 +178,13 @@ var JSterminal = (function() {
       }
       for (k in opts) { if (opts.hasOwnProperty(k)) { m[k] = opts[k]; } }
       return {
-        puts: function(out, callback) {
-          this.meta.requestsQueue.push({type: "puts", callback: callback, data: {output: out}});
+        puts: function(out, callback, options) {
+          this.meta.requestsQueue.push({type: "puts", callback: callback, data: {output: out}, options: options || {}});
           this.enqueue();
           JSterminal.ioQueue.serveNext();
         },
-        gets: function(callback) {
-          this.meta.requestsQueue.push({type: "gets", callback: callback});
+        gets: function(callback, options) {
+          this.meta.requestsQueue.push({type: "gets", callback: callback, options: options || {}});
           this.enqueue();
           JSterminal.ioQueue.serveNext();
         },

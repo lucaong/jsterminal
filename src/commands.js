@@ -49,8 +49,19 @@ JSterminal.register("w", {
 JSterminal.register("deli", {
   description: "bookmark page on Delicious",
   help: "it bookmarks the current page on Delicious\nSynopsis:\n  deli [TITLE] [NOTES]",
-  execute: function(argv){
-    window.open("http://delicious.com/save?url="+location.href+"&title="+(argv[0] || document.title)+"&v=5&jump=yes&notes="+(argv[1]||""));
+  options: {
+    "-l": {
+      argument: false,
+      description: "open the list of saved bookmarks",
+      alias: "--list"
+    }
+  },
+  execute: function(argv, options) {
+    if (!!options["-l"]) {
+      window.open("http://delicious.com/home");
+    } else {
+      window.open("http://delicious.com/save?url="+location.href+"&title="+(argv[0] || document.title)+"&v=5&jump=yes&notes="+(argv[1]||""));
+    }
   }
 });
 
