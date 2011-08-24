@@ -194,37 +194,40 @@ JSterminal.register("js", {
         io.puts(js, function(js) {
           try {
             var r = $js.globalEval(js);
+            var putsAndCycleAgain = function(out, prefix) {
+              io.puts(out, function() {
+                io.gets($js.interpretJS);
+              }, { prefix: prefix || "=&gt; " });
+            };
             switch(typeof r) {
               case "number":
-                io.puts(r);
+                putsAndCycleAgain(r);
                 break;
               case "string":
-                io.puts('"'+r+'"');
+                putsAndCycleAgain('"'+r+'"');
                 break;
               case "boolean":
-                io.puts(r ? "true" : "false");
-                break;
-              case "boolean":
-                io.puts(r ? "true" : "false");
+                putsAndCycleAgain(r ? "true" : "false");
                 break;
               default:
                 if (typeof r == "undefined") {
-                  io.puts("undefined");
+                  putsAndCycleAgain("undefined");
                 } else if (r == null) {
-                  io.puts("null");
+                  putsAndCycleAgain("null");
                 } else {
-                  io.puts(r.toString());
+                  putsAndCycleAgain(r.toString());
                 }
             }
           } catch(err) {
-            io.puts(err.name+": "+err.message);
+            io.puts(err.name+": "+err.message, function() {
+              io.gets($js.interpretJS);
+            }, { prefix: "&nbsp;&nbsp; " });
           }
-          io.gets($js.interpretJS);
         });
       } else {
-        io.puts("JavaScript console closed\n", function() {
+        io.puts("-------------------------\nJavaScript console closed\n", function() {
           io.checkout();
-        });
+        }, { prefix: "" });
       }
     }
     io.reserve();

@@ -6,11 +6,11 @@ JSterminal.eventHandlers = JSterminal.eventHandlers || {};
 // Redefine IO handlers
 JSterminal.ioQueue.ioHandlers = {
   gets: function(request, io) {
-    jQuery("#JSterminal_in_prefix").html(request.options.prefix || io.meta.prefixes.input || "");
+    jQuery("#JSterminal_in_prefix").html(typeof request.options.prefix != "undefined" ? request.options.prefix : (io.meta.prefixes.input || ""));
     jQuery("#JSterminal_in").width(jQuery("#JSterminal_in_wrap").width() - jQuery("#JSterminal_in_prefix").width() - 20);
   },
   puts: function(request, io) {
-    jQuery("#JSterminal_in_wrap").before((request.options.prefix || io.meta.prefixes.output || "")+(request.data.output||"")+"\n");
+    jQuery("#JSterminal_in_wrap").before((typeof request.options.prefix != "undefined" ? request.options.prefix : (io.meta.prefixes.output || ""))+(request.data.output||"")+"\n");
     jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
     jQuery("#JSterminal_in").focus();
     io.meta.requestsQueue.shift();

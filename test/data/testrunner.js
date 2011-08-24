@@ -15,7 +15,7 @@ JSterminal.ioQueue.ioHandlers = {
     }
     JSterminal.ioQueue.tidyUp();
   },
-  other: function(request, io) {
+  default: function(request, io) {
     io.meta.requestsQueue.shift();
     JSterminal.ioQueue.tidyUp();
   }
