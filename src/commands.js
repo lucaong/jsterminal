@@ -191,14 +191,14 @@ JSterminal.register("js", {
     })();
     this.interpretJS = function(js) {
       if (js != 'q' && js != 'quit' && js != 'Q') {
+        var putsAndCycleAgain = function(out, prefix) {
+          io.puts(out, function() {
+            io.gets($js.interpretJS);
+          }, { prefix: prefix || "=&gt; " });
+        };
         io.puts(js, function(js) {
           try {
             var r = $js.globalEval(js);
-            var putsAndCycleAgain = function(out, prefix) {
-              io.puts(out, function() {
-                io.gets($js.interpretJS);
-              }, { prefix: prefix || "=&gt; " });
-            };
             switch(typeof r) {
               case "number":
                 putsAndCycleAgain(r);
@@ -219,13 +219,11 @@ JSterminal.register("js", {
                 }
             }
           } catch(err) {
-            io.puts(err.name+": "+err.message, function() {
-              io.gets($js.interpretJS);
-            }, { prefix: "&nbsp;&nbsp; " });
+            putsAndCycleAgain(err.name+": "+err.message, "&nbsp;&nbsp; ");
           }
         });
       } else {
-        io.puts("-------------------------\nJavaScript console closed\n", function() {
+        io.puts("JavaScript console closed\n", function() {
           io.checkout();
         }, { prefix: "" });
       }
