@@ -30,6 +30,6 @@ JSterminal.launch = function() {
   }
 }
 
-JSterminal.ioQueue.scheduleDefault = function() {
+JSterminal.ioQueue.scheduleDefaultRequest = function() {
   return true;
 }

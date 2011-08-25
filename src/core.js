@@ -67,7 +67,7 @@ var JSterminal = (function() {
       if (typeof JSterminal.terminalIO === "undefined") {
         JSterminal.terminalIO = JSterminal.IO();
       }
-      JSterminal.ioQueue.scheduleDefault();
+      JSterminal.ioQueue.scheduleDefaultRequest();
     },
     // Function quit(): called to quit the terminal
     quit: function() {
@@ -104,25 +104,25 @@ var JSterminal = (function() {
               if(this.ioHandlers.hasOwnProperty(request.type)) {
                 this.ioHandlers[request.type](request, io);
               } else {
-                this.ioHandlers.default(request, io);
+                io.meta.requestsQueue.shift();
+                JSterminal.ioQueue.tidyUp();
               }
             } else {
               return true;
             }
           } else {
-            this.scheduleDefault();
+            this.scheduleDefaultRequest();
           }
         },
-        scheduleDefault: function() {
+        // Default request: when ioQueue is empty, the terminal takes control pushing its own IO interface in the queue
+        scheduleDefaultRequest: function() {
           JSterminal.terminalIO.reserve();
           JSterminal.terminalIO.gets(function(s) {
-            JSterminal.terminalIO.puts(s, function() {
-              try {
-                JSterminal.interpret(s);
-              } finally {
-                JSterminal.terminalIO.checkout();
-              }
-            });
+            try {
+              JSterminal.interpret(s);
+            } finally {
+              JSterminal.terminalIO.checkout();
+            }
           });
         },
         contains: function(elem) {
@@ -158,10 +158,6 @@ var JSterminal = (function() {
             if (typeof request.callback === "function") {
               request.callback(request.data.output);
             }
-            JSterminal.ioQueue.tidyUp();
-          },
-          default: function(request, io) {
-            io.meta.requestsQueue.shift();
             JSterminal.ioQueue.tidyUp();
           }
         }
