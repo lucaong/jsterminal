@@ -6,7 +6,7 @@
  *
  */
 
-
+// CORE FUNCTIONALITIES
 var JSterminal = (function() {
   var registeredCommands = {};
 
@@ -163,7 +163,7 @@ var JSterminal = (function() {
         }
       }
     })(),
-    // Input/Output interface
+    // Input/Output interface factory
     IO: function(opts) {
       var reserving = false;
       var m = {
