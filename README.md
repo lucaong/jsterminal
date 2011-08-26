@@ -36,32 +36,30 @@ With some basic JavaScript knowledge it's easy to write custom commands. To make
 An example is worth a thousand words:
 
 ```javascript
-
-    JSterminal.register("s", {
-      
-      // Short description
-      description: "search on Google",
-      
-      // Help text
-      help: "it searches the string passed as argument on Google\nSynopsis:\n  s SEARCH_QUERY",
-      
-      // Command line options
-      options: {
-        "-d": {
-          argument: true, // true if the option expects an argument, false if it is just a flag
-          description: "top level domain to use (e.g. 'com', 'de' or 'it'). Default is 'com'.", // Option description
-          alias: "--domain" // Option alias
-        }
-      },
-      
-      // The execute function is the only mandatory property. When a command is invoked, JSterminal calls its execute() function
-      // passing an array of command-line arguments and a key-value object containing command-line options set in the invocation.
-      execute: function(argv, options) {
-        window.open("http://www.google."+(options["-d"] || "com")+"/search?q="+argv.join("+"));
-      }
-      
-    });
-
+JSterminal.register("s", {
+  
+  // Short description
+  description: "search on Google",
+  
+  // Help text
+  help: "it searches the string passed as argument on Google\nSynopsis:\n  s SEARCH_QUERY",
+  
+  // Command line options
+  options: {
+    "-d": {
+      argument: true, // true if the option expects an argument, false if it is just a flag
+      description: "top level domain to use (e.g. 'com', 'de' or 'it'). Default is 'com'.", // Option description
+      alias: "--domain" // Option alias
+    }
+  },
+  
+  // The execute function is the only mandatory property. When a command is invoked, JSterminal calls its execute() function
+  // passing an array of command-line arguments and a key-value object containing command-line options set in the invocation.
+  execute: function(argv, options) {
+    window.open("http://www.google."+(options["-d"] || "com")+"/search?q="+argv.join("+"));
+  }
+  
+});
 ```
 
 Input/Output API
@@ -78,23 +76,21 @@ In the `execute` function, you can get input and print output on the terminal ma
 If you need to call more than one input/output functions, you need to reserve control of the input/output before and to release it after. In order to do that, use `io.reserve()` and `io.checkout()`:
 
 ```javascript
-
-    JSterminal.register("hello", {
-      description: "says hello",
-      help: "prompts the user for his/her name and then print 'Hello, <name>!'",
-      execute: function() {
-        var io = this.io;
-        io.reserve(); // Reserve control of input/output
-        io.puts("What's your name?", function() {
-          io.gets(function(name) {
-            io.puts("Hello, "+name+"!", function() {
-              io.checkout(); // Release control of input/output
-            });
-          });
+JSterminal.register("hello", {
+  description: "says hello",
+  help: "prompts the user for his/her name and then print 'Hello, <name>!'",
+  execute: function() {
+    var io = this.io;
+    io.reserve(); // Reserve control of input/output
+    io.puts("What's your name?", function() {
+      io.gets(function(name) {
+        io.puts("Hello, "+name+"!", function() {
+          io.checkout(); // Release control of input/output
         });
-      }
+      });
     });
-
+  }
+});
 ```
 
 If you take on the challenge to write your own commands, code them at the bottom of `src/commands.js` and re-build JSterminal. Should you come up with some cool new commands, don't forget to send me a pull request.
