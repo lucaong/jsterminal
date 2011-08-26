@@ -6,7 +6,7 @@
  *
  */
 
-
+// CORE FUNCTIONALITIES
 var JSterminal = (function() {
   var registeredCommands = {};
 
@@ -67,7 +67,7 @@ var JSterminal = (function() {
       if (typeof JSterminal.terminalIO === "undefined") {
         JSterminal.terminalIO = JSterminal.IO();
       }
-      JSterminal.ioQueue.scheduleDefault();
+      JSterminal.ioQueue.scheduleDefaultRequest();
     },
     // Function quit(): called to quit the terminal
     quit: function() {
@@ -100,33 +100,29 @@ var JSterminal = (function() {
           if (!!io) {
             var request = io.meta.requestsQueue[0];
             if (!!request) {
-              switch(request.type) {
-                case "gets":
-                  this.ioHandlers.gets(request, io);
-                  break;
-                case "puts":
-                  this.ioHandlers.puts(request, io);
-                  break;
-                default:
-                  this.ioHandlers.other(request, io);
+              // Use the appropriate ioHandler depending on request type
+              if(this.ioHandlers.hasOwnProperty(request.type)) {
+                this.ioHandlers[request.type](request, io);
+              } else {
+                io.meta.requestsQueue.shift();
+                JSterminal.ioQueue.tidyUp();
               }
             } else {
               return true;
             }
           } else {
-            this.scheduleDefault();
+            this.scheduleDefaultRequest();
           }
         },
-        scheduleDefault: function() {
+        // Default request: when ioQueue is empty, the terminal takes control pushing its own IO interface in the queue
+        scheduleDefaultRequest: function() {
           JSterminal.terminalIO.reserve();
           JSterminal.terminalIO.gets(function(s) {
-            JSterminal.terminalIO.puts(s, function() {
-              try {
-                JSterminal.interpret(s);
-              } finally {
-                JSterminal.terminalIO.checkout();
-              }
-            });
+            try {
+              JSterminal.interpret(s);
+            } finally {
+              JSterminal.terminalIO.checkout();
+            }
           });
         },
         contains: function(elem) {
@@ -147,30 +143,27 @@ var JSterminal = (function() {
         empty: function() {
           queue = [];
         },
+        // Default IO handlers, to be overridden by each particular UI implementation
         ioHandlers: {
           gets: function(request, io) {
             io.meta.requestsQueue.shift();
             if (typeof request.callback === "function") {
-              request.callback(prompt(io.meta.prefixes.input || ""));
+              request.callback(prompt(typeof request.options.prefix != "undefined" ? request.options.prefix : (io.meta.prefixes.input || "")));
             }
             JSterminal.ioQueue.tidyUp();
           },
           puts: function(request, io) {
-            console.log((io.meta.prefixes.output || "") + (request.data.output || ""));
+            console.log((typeof request.options.prefix != "undefined" ? request.options.prefix : (io.meta.prefixes.output || "")) + (request.data.output || ""));
             io.meta.requestsQueue.shift();
             if (typeof request.callback === "function") {
               request.callback(request.data.output);
             }
             JSterminal.ioQueue.tidyUp();
-          },
-          other: function(request, io) {
-            io.meta.requestsQueue.shift();
-            JSterminal.ioQueue.tidyUp();
           }
         }
       }
     })(),
-    // Input/Output interface
+    // Input/Output interface factory
     IO: function(opts) {
       var reserving = false;
       var m = {
@@ -182,21 +175,25 @@ var JSterminal = (function() {
       }
       for (k in opts) { if (opts.hasOwnProperty(k)) { m[k] = opts[k]; } }
       return {
-        puts: function(out, callback) {
-          this.meta.requestsQueue.push({type: "puts", callback: callback, data: {output: out}});
+        puts: function(out, callback, options) {
+          // Push a request for a puts action in the requestsQueue, make sure this IO interface is enqueued and go serving the next request
+          this.meta.requestsQueue.push({type: "puts", callback: callback, data: {output: out}, options: options || {}});
           this.enqueue();
           JSterminal.ioQueue.serveNext();
         },
-        gets: function(callback) {
-          this.meta.requestsQueue.push({type: "gets", callback: callback});
+        gets: function(callback, options) {
+          // Push a request for a gets action in the requestsQueue, make sure this IO interface is enqueued and go serving the next request
+          this.meta.requestsQueue.push({type: "gets", callback: callback, options: options || {}});
           this.enqueue();
           JSterminal.ioQueue.serveNext();
         },
         reserve: function() {
+          // Ask to reserve IO control to this IO interface until checkout() is called
           reserving = true;
           this.enqueue();
         },
         checkout: function() {
+          // Release IO control
           reserving = false;
           JSterminal.ioQueue.tidyUp();
         },
@@ -204,11 +201,13 @@ var JSterminal = (function() {
           return !!reserving;
         },
         enqueue: function() {
+          // Push this IO interface in the ioQueue if it is not already there
           if (!JSterminal.ioQueue.contains(this)) {
             JSterminal.ioQueue.push(this);
           }
         },
         flushAllRequests: function() {
+          // Empty requestsQueue and release IO
           this.meta.requestsQueue = [];
           this.checkout();
         },

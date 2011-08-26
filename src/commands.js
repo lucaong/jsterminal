@@ -2,7 +2,7 @@
 
 JSterminal.register("tweet", {
   description: "share on Twitter",
-  help: "it shares the current URL on Twitter, adding (in order of precedence) the text passed as argument or the page title in the status text",
+  help: "share the current URL on Twitter, using the text passed as argument or the page title as the status text",
   execute: function(argv){
     window.open("http://twitter.com/share?url="+location.href+"&text="+encodeURI(argv.join(" ") || document.title));
   }
@@ -10,7 +10,7 @@ JSterminal.register("tweet", {
 
 JSterminal.register("s", {
   description: "search on Google",
-  help: "it searches the string passed as argument on Google\nSynopsis:\n  s SEARCH_QUERY",
+  help: "search the string passed as argument on Google\nSynopsis:\n  s SEARCH_QUERY",
   options: {
     "-d": {
       argument: true,
@@ -25,7 +25,7 @@ JSterminal.register("s", {
 
 JSterminal.register("def", {
   description: "search for a definition",
-  help: "it searches the string passed as argument for a definition on Google\nSynopsis:\n  s SEARCH_QUERY",
+  help: "search the string passed as argument for a definition on Google\nSynopsis:\n  s SEARCH_QUERY",
   execute: function(argv){
     window.open("http://www.google.com/search?q=define:"+argv.join("+"));
   }
@@ -40,7 +40,7 @@ JSterminal.register("w", {
     }
   },
   description: "search on Wikipedia",
-  help: "it searches the string passed as argument on Wikipedia",
+  help: "search the string passed as argument on Wikipedia",
   execute: function(argv, options){
     window.open("http://www.wikipedia.org/search-redirect.php?search="+argv.join("+")+"&language="+(options["-l"] || "en"));
   }
@@ -48,15 +48,26 @@ JSterminal.register("w", {
 
 JSterminal.register("deli", {
   description: "bookmark page on Delicious",
-  help: "it bookmarks the current page on Delicious\nSynopsis:\n  deli [TITLE] [NOTES]",
-  execute: function(argv){
-    window.open("http://delicious.com/save?url="+location.href+"&title="+(argv[0] || document.title)+"&v=5&jump=yes&notes="+(argv[1]||""));
+  help: "bookmark the current page on Delicious\nSynopsis:\n  deli [TITLE] [NOTES]",
+  options: {
+    "-l": {
+      argument: false,
+      description: "open the list of saved bookmarks",
+      alias: "--list"
+    }
+  },
+  execute: function(argv, options) {
+    if (!!options["-l"]) {
+      window.open("http://delicious.com/home");
+    } else {
+      window.open("http://delicious.com/save?url="+location.href+"&title="+(argv[0] || document.title)+"&v=5&jump=yes&notes="+(argv[1]||""));
+    }
   }
 });
 
 JSterminal.register("tr", {
   description: "translate page with Google Translate",
-  help: "it translates the current page with Google Translate\nSynopsis:\n  tr [DESTINATION_LANGUAGE]",
+  help: "translate the current page with Google Translate\nSynopsis:\n  tr [DESTINATION_LANGUAGE]",
   execute: function(argv){
     window.open("http://translate.google.com/translate?u="+location.href+"&tl="+(argv[0] || "en"));
   }
@@ -64,7 +75,7 @@ JSterminal.register("tr", {
 
 JSterminal.register("iten", {
   description: "Italian to English translation",
-  help: "it translates a word or expression from Italian to English using WordReference\nSynopsis:\n  iten WORD",
+  help: "translate a word or expression from Italian to English using WordReference\nSynopsis:\n  iten WORD",
   execute: function(argv){
     window.open("http://www.wordreference.com/iten/"+argv.join("+").replace(/ +/, "+"));
   }
@@ -72,7 +83,7 @@ JSterminal.register("iten", {
 
 JSterminal.register("enit", {
   description: "English to Italian translation",
-  help: "it translates a word or expression from English to Italian using WordReference\nSynopsis:\n  enit WORD",
+  help: "translate a word or expression from English to Italian using WordReference\nSynopsis:\n  enit WORD",
   execute: function(argv){
     window.open("http://www.wordreference.com/enit/"+argv.join("+").replace(/ +/, "+"));
   }
@@ -80,7 +91,7 @@ JSterminal.register("enit", {
 
 JSterminal.register("map", {
   description: "search on Google Maps",
-  help: "it searches the string passed as argument on Google Maps\nSynopsis:\n  map SEARCH_QUERY",
+  help: "search the string passed as argument on Google Maps\nSynopsis:\n  map SEARCH_QUERY",
   execute: function(argv){
     window.open("http://www.google.com/maps?q="+argv.join("+"));
   }
@@ -88,7 +99,7 @@ JSterminal.register("map", {
 
 JSterminal.register("img", {
   description: "search on Google Image Search",
-  help: "it searches the string passed as argument on Google Image Search\nSynopsis:\n  img SEARCH_QUERY",
+  help: "search the string passed as argument on Google Image Search\nSynopsis:\n  img SEARCH_QUERY",
   execute: function(argv){
     window.open("http://www.google.com/images?q="+argv.join("+"));
   }
@@ -96,7 +107,7 @@ JSterminal.register("img", {
 
 JSterminal.register("tube", {
   description: "search on YouTube",
-  help: "it searches the string passed as argument on YouTube\nSynopsis:\n  tube SEARCH_QUERY",
+  help: "search the string passed as argument on YouTube\nSynopsis:\n  tube SEARCH_QUERY",
   execute: function(argv){
     window.open("http://www.youtube.com/results?search_query="+argv.join("+"));
   }
@@ -104,7 +115,7 @@ JSterminal.register("tube", {
 
 JSterminal.register("mail", {
   description: "send link by email",
-  help: "it opens your default email application pre-filling a new email with a link to the current page\nSynopsis:\n  mail [RECIPIENTS] [SUBJECT]",
+  help: "open your default email application pre-filling a new email with a link to the current page\nSynopsis:\n  mail [RECIPIENTS] [SUBJECT]",
   execute: function(argv){
     window.open("mailto:"+(argv[0]||"")+"?subject="+(argv[1]||document.title)+"&body="+location.href+"%0A%0A"+argv.join("+"));
   }
@@ -112,7 +123,7 @@ JSterminal.register("mail", {
 
 JSterminal.register("gmail", {
   description: "send link by email using Gmail",
-  help: "it opens Gmail pre-filling a new email with a link to the current page\nSynopsis:\n  gmail [RECIPIENTS] [SUBJECT]",
+  help: "open Gmail pre-filling a new email with a link to the current page\nSynopsis:\n  gmail [RECIPIENTS] [SUBJECT]",
   execute: function(argv){
     window.open("https://mail.google.com/mail/?view=cm&tf=1&to=" + (argv[0] || "") + "&cc=&su=" + (argv[1] || document.title) + "&body=" + location.href + "&fs=1",'_blank','location=yes,menubar=yes,resizable=yes,width=800,height=600');
   }
@@ -120,7 +131,7 @@ JSterminal.register("gmail", {
 
 JSterminal.register("css", {
   description: "CSS console to add/edit page style",
-  help: "it opens a CSS console, making it possible to add CSS directive to the current page. Enter 'quit' or 'q' to quit the console.",
+  help: "start an interactive CSS console, making it possible to add CSS directive to the current page. Enter 'quit' or 'q' to quit the console.",
   io: JSterminal.IO({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
   execute: function(argv){
     var $css = this;
@@ -152,7 +163,7 @@ JSterminal.register("css", {
 
 JSterminal.register("js", {
   description: "JavaScript console",
-  help: "it opens an interactive JavaScript console. Enter 'quit' or 'q' to quit the console.",
+  help: "start an interactive JavaScript console. Enter 'quit' or 'q' to quit the console.",
   io: JSterminal.IO({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
   execute: function(argv) {
     var $js = this;
@@ -180,43 +191,45 @@ JSterminal.register("js", {
     })();
     this.interpretJS = function(js) {
       if (js != 'q' && js != 'quit' && js != 'Q') {
+        var putsAndCycleAgain = function(out, prefix, style) {
+          io.puts(out, function() {
+            io.gets($js.interpretJS);
+          }, { prefix: prefix || "=&gt; ", style: style });
+        };
         io.puts(js, function(js) {
           try {
             var r = $js.globalEval(js);
             switch(typeof r) {
               case "number":
-                io.puts(r);
+                putsAndCycleAgain(r);
                 break;
               case "string":
-                io.puts('"'+r+'"');
+                putsAndCycleAgain('"'+r+'"');
                 break;
               case "boolean":
-                io.puts(r ? "true" : "false");
-                break;
-              case "boolean":
-                io.puts(r ? "true" : "false");
+                putsAndCycleAgain(r ? "true" : "false");
                 break;
               default:
                 if (typeof r == "undefined") {
-                  io.puts("undefined");
+                  putsAndCycleAgain("undefined", "=&gt; ", "color: #aaa;");
                 } else if (r == null) {
-                  io.puts("null");
+                  putsAndCycleAgain("null", "=&gt; ", "color: #aaa;");
                 } else {
-                  io.puts(r.toString());
+                  putsAndCycleAgain(r.toString());
                 }
             }
           } catch(err) {
-            io.puts(err.name+": "+err.message);
+            putsAndCycleAgain(err.name+": "+err.message, "=&gt; ", "color: #c00;");
           }
-          io.gets($js.interpretJS);
         });
       } else {
         io.puts("JavaScript console closed\n", function() {
           io.checkout();
-        });
+        }, { prefix: "" });
       }
     }
     io.reserve();
     io.gets($js.interpretJS);
   }
 });
+

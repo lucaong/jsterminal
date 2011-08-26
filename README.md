@@ -1,7 +1,7 @@
 JSterminal
 ==========
 
-One bookmarklet to rule 'em all. JSterminal is a bookmarklet that, when clicked, opens up a terminal-like interface that offers many useful commands. For example, here are some of the available commands:
+One bookmarklet to rule 'em all. JSterminal is a bookmarklet that, when clicked, opens up a terminal-like interface that offers many useful commands. For example, here are some of the commands available by default:
 
     css: CSS console to add/edit page style
     def: search for a definition
@@ -21,24 +21,81 @@ One bookmarklet to rule 'em all. JSterminal is a bookmarklet that, when clicked,
     tweet: share on Twitter
     w: search on Wikipedia
 
-With some basic JavaScript knowledge it's easy to write custom commands. To add a custom command you have to call the `JSterminal.register(commandName, objectDefiningCommandLogicAndInfo)` function. An example is worth a thousand words:
+Creating Your Own Commands
+==========================
+
+With some basic JavaScript knowledge it's easy to write custom commands. To make a new custom command available in JSterminal you need to call the `JSterminal.register()` function. The function accepts two arguments:
+
+* the name of the command (the one you will use to invoke it)
+* an object defining the command implementation and other info. In particular, this object should contain the following properties:
+  - `execute`: a callable function implementing the command logic. When the command is invoked, JSterminal calls this function passing the array of command-line arguments and an object containing the option set via command line.
+  - `description`: a short description of the command
+  - `help`: a longer text describing the command, its usage, and providing help (used by the `help` command)
+  - `options`: an object describing the command-line options and flags available for this command. For each option you can optionally specify whether it accepts arguments, a short description and an alias.
+
+An example is worth a thousand words:
+
+```javascript
 
     JSterminal.register("s", {
-      description: "search on Google", // Short description
-      help: "it searches the string passed as argument on Google\nSynopsis:\n  s SEARCH_QUERY",  // Help text
-      options: { // Command line options
+      
+      // Short description
+      description: "search on Google",
+      
+      // Help text
+      help: "it searches the string passed as argument on Google\nSynopsis:\n  s SEARCH_QUERY",
+      
+      // Command line options
+      options: {
         "-d": {
           argument: true, // true if the option expects an argument, false if it is just a flag
           description: "top level domain to use (e.g. 'com', 'de' or 'it'). Default is 'com'.", // Option description
           alias: "--domain" // Option alias
         }
       },
+      
       // The execute function is the only mandatory property. When a command is invoked, JSterminal calls its execute() function
       // passing an array of command-line arguments and a key-value object containing command-line options set in the invocation.
       execute: function(argv, options) {
         window.open("http://www.google."+(options["-d"] || "com")+"/search?q="+argv.join("+"));
       }
+      
     });
+
+```
+
+Input/Output API
+----------------
+
+In the `execute` function, you can get input and print output on the terminal making use of the API. JSterminal adds to each command an `io` object, on which you can call the `io.gets(...)` and `io.puts(...)` methods. These two function work in an asynchronous fashion, so they both accept a callback. The specs are the followings:
+
+`io.puts(outputString, [callback(outputString)], [options])`
+  asynchronously writes `outputString` in the terminal, followed by a new line, and, once done, calls the `callback` function passing `outputString`.
+
+`io.gets([callback(inputString)], [options])`
+  asynchronously gets input from the user. Once the input is received, calls the `callback` function passing the input string.
+
+If you need to call more than one input/output functions, you need to reserve control of the input/output before and to release it after. In order to do that, use `io.reserve()` and `io.checkout()`:
+
+```javascript
+
+    JSterminal.register("hello", {
+      description: "says hello",
+      help: "prompts the user for his/her name and then print 'Hello, <name>!'",
+      execute: function() {
+        var io = this.io;
+        io.reserve(); // Reserve control of input/output
+        io.puts("What's your name?", function() {
+          io.gets(function(name) {
+            io.puts("Hello, "+name+"!", function() {
+              io.checkout(); // Release control of input/output
+            });
+          });
+        });
+      }
+    });
+
+```
 
 If you take on the challenge to write your own commands, code them at the bottom of `src/commands.js` and re-build JSterminal. Should you come up with some cool new commands, don't forget to send me a pull request.
 
@@ -50,7 +107,8 @@ Build Instructions
     make
 
 The built version will be put in the `dist` subfolder.
-To try it out, place the distribution files (`index.html` and `jsterminal.js`) in a location accessible via your browser. Then, in the file `index.html`, substitute the path `http://localhost:8888/jsterminal/dist/jsterminal.js` with the correct absolute path to `jsterminal.js` on your local machine or server. Finally, open `index.html` in your browser and drag the link in your bookmarks bar.
+
+To try out JSterminal, place the distribution files (`index.html` and `jsterminal.js`) in a location accessible from your browser. Then, in the file `index.html`, substitute the path `http://localhost:8888/jsterminal/dist/jsterminal.js` with the correct absolute path to `jsterminal.js` on your local machine or server. Finally, open `index.html` in your browser and drag the link in your bookmarks bar.
 
 
 Minified version
