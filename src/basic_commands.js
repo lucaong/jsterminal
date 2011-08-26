@@ -5,8 +5,7 @@ JSterminal.register("help", {
   description: "provides some help",
   help: "with no parameters it shows a list of available commands, passing the name of a command provides help on the command",
   execute: function(argv){
-    var io = this.io;
-    var out = "";
+    var io = this.io, out = "", i = 0;
     io.reserve();
     if(argv.length === 0) {
       out += "\nJSterminal\nA list of available commands (type help COMMAND_NAME to get help on a particular command):\n";
@@ -15,17 +14,17 @@ JSterminal.register("help", {
         sortedCommands.push(c);
       }
       sortedCommands.sort();
-      for (var i in sortedCommands) if (sortedCommands.hasOwnProperty(i))  {
+      for (i in sortedCommands) if (sortedCommands.hasOwnProperty(i))  {
         out += "\n  " + sortedCommands[i] + ": " + (JSterminal.commands[sortedCommands[i]].description || "no description");
       }
       out += "\n";
     } else {
-      for(var i in argv) if (argv.hasOwnProperty(i)) {
+      for(i in argv) if (argv.hasOwnProperty(i)) {
         if(JSterminal.commands[argv[i]]) {
           out += argv[i] + ":\n  " + (JSterminal.commands[argv[i]].help || "no help");
           if(!!JSterminal.commands[argv[i]].options) {
             out += "\n\n  OPTIONS:";
-            for(var j in JSterminal.commands[argv[i]].options) {
+            for(var j in JSterminal.commands[argv[i]].options) if (JSterminal.commands[argv[i]].options.hasOwnProperty(j)) {
               var option_names = !!JSterminal.commands[argv[i]].options[j].alias ?
                 [j, JSterminal.commands[argv[i]].options[j].alias] :
                 [j];
