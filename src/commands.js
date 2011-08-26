@@ -155,7 +155,7 @@ JSterminal.register("css", {
           io.checkout();
         });
       }
-    }
+    };
     io.reserve();
     io.gets($css.addStyle);
   }
@@ -172,7 +172,8 @@ JSterminal.register("js", {
       // globalEval code by kangax http://perfectionkills.com/global-eval-what-are-the-options/
       var isIndirectEvalGlobal = (function(original, Object) {
         try {
-          return (1,eval)('Object') === original;
+          var e = eval;
+          return e('Object') === original;
         }
         catch(err) {
           return false;
@@ -180,7 +181,8 @@ JSterminal.register("js", {
       })(Object, 123);
       if (isIndirectEvalGlobal) {
         return function(expression) {
-          return (1,eval)(expression);
+          var e = eval;
+          return e(expression);
         };
       }
       else if (typeof window.execScript !== 'undefined') {
@@ -210,9 +212,9 @@ JSterminal.register("js", {
                 putsAndCycleAgain(r ? "true" : "false");
                 break;
               default:
-                if (typeof r == "undefined") {
+                if (typeof r === "undefined") {
                   putsAndCycleAgain("undefined", "=&gt; ", "color: #aaa;");
-                } else if (r == null) {
+                } else if (r === null) {
                   putsAndCycleAgain("null", "=&gt; ", "color: #aaa;");
                 } else {
                   putsAndCycleAgain(r.toString());
@@ -227,7 +229,7 @@ JSterminal.register("js", {
           io.checkout();
         }, { prefix: "" });
       }
-    }
+    };
     io.reserve();
     io.gets($js.interpretJS);
   }

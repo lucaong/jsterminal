@@ -19,12 +19,8 @@ JSterminal.ioQueue.ioHandlers = {
       request.callback(request.data.output);
     }
     JSterminal.ioQueue.tidyUp();
-  },
-  default: function(request, io) {
-    io.meta.requestsQueue.shift();
-    JSterminal.ioQueue.tidyUp();
   }
-}
+};
 
 // Redefine ioQueue.scheduleDefaultRequest
 JSterminal.ioQueue.scheduleDefaultRequest = function() {
@@ -38,7 +34,7 @@ JSterminal.ioQueue.scheduleDefaultRequest = function() {
       }
     }, { prefix: "&gt; "});
   });
-}
+};
 
 // Handle onkeydown event in #JSterminal_in
 JSterminal.eventHandlers.keyPressed = function(e) {
@@ -96,5 +92,5 @@ JSterminal.quit = function() {
   JSterminal.ioQueue.empty();
   JSterminal.terminalIO.meta.requestsQueue = [];
   jQuery("#JSterminal_container").remove();
-}
+};
 

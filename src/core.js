@@ -88,7 +88,7 @@ var JSterminal = (function() {
         },
         tidyUp: function() {
           var io = queue[0];
-          if (!!io && io.meta.requestsQueue.length == 0) {
+          if (!!io && io.meta.requestsQueue.length === 0) {
             if (!io.isReserving()) {
               queue.shift();
             }
@@ -161,18 +161,19 @@ var JSterminal = (function() {
             JSterminal.ioQueue.tidyUp();
           }
         }
-      }
+      };
     })(),
     // Input/Output interface factory
     IO: function(opts) {
-      var reserving = false;
-      var m = {
+      var reserving = false,
+      m = {
         prefixes: {
           input: "&gt; ",
           output: ""
         },
         requestsQueue: []
-      }
+      },
+      k;
       for (k in opts) { if (opts.hasOwnProperty(k)) { m[k] = opts[k]; } }
       return {
         puts: function(out, callback, options) {
@@ -212,7 +213,7 @@ var JSterminal = (function() {
           this.checkout();
         },
         meta: m
-      }
+      };
     }
   };
 })();

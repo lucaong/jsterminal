@@ -65,7 +65,7 @@ JSterminal.register("s", {
 Input/Output API
 ----------------
 
-In the `execute` function, you can get input and print output on the terminal making use of the API. JSterminal adds to each command an `io` object, on which you can call the `io.gets(...)` and `io.puts(...)` methods. These two function work in an asynchronous fashion, so they both accept a callback. The specs are the followings:
+In the `execute` function, you can get input and print output on the terminal making use of the API. JSterminal adds to each command an `io` object, on which you can call the `io.gets(...)` and `io.puts(...)` methods. These two functions work in an asynchronous fashion, so they both accept a callback. The specs are the followings:
 
 `io.puts(outputString, [callback(outputString)], [options])`
   asynchronously writes `outputString` in the terminal, followed by a new line, and, once done, calls the `callback` function passing `outputString`.
