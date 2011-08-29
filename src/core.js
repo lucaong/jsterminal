@@ -27,11 +27,11 @@ var JSterminal = (function() {
     },
     // Function interpret(input_string): interpret input
     interpret: function(input_string){
-      var i;
-      var input_array = input_string.replace(/^\s+|\s+$/g, "").match(/[^"'\s]+|"[^"]*"|'[^']*'/g);
-      var command_name = input_array.shift();
-      var options = {};
-      var io = this.terminalIO;
+      var i,
+        input_array = input_string.replace(/^\s+|\s+$/g, "").match(/[^"'\s]+|"[^"]*"|'[^']*'/g),
+        command_name = input_array.shift(),
+        options = {},
+        io = this.terminalIO;
       
       // Parse options and arguments
       for(i = 0; i < input_array.length; i++) {
@@ -73,7 +73,7 @@ var JSterminal = (function() {
     quit: function() {
       JSterminal.terminalIO.checkout();
       JSterminal.ioQueue.empty();
-      JSterminal.terminalIO.meta.requestsQueue = [];
+      JSterminal.terminalIO.requestsQueue = [];
       return false;
     },
     // Input/Output queue
@@ -88,7 +88,7 @@ var JSterminal = (function() {
         },
         tidyUp: function() {
           var io = queue[0];
-          if (!!io && io.meta.requestsQueue.length === 0) {
+          if (!!io && io.requestsQueue.length === 0) {
             if (!io.isReserving()) {
               queue.shift();
             }
@@ -98,13 +98,13 @@ var JSterminal = (function() {
         serveNext: function() {
           var io = JSterminal.ioQueue.first();
           if (!!io) {
-            var request = io.meta.requestsQueue[0];
+            var request = io.requestsQueue[0];
             if (!!request) {
               // Use the appropriate ioHandler depending on request type
               if(this.ioHandlers.hasOwnProperty(request.type)) {
                 this.ioHandlers[request.type](request, io);
               } else {
-                io.meta.requestsQueue.shift();
+                io.requestsQueue.shift();
                 JSterminal.ioQueue.tidyUp();
               }
             } else {
@@ -146,15 +146,15 @@ var JSterminal = (function() {
         // Default IO handlers, to be overridden by each particular UI implementation
         ioHandlers: {
           gets: function(request, io) {
-            io.meta.requestsQueue.shift();
+            io.requestsQueue.shift();
             if (typeof request.callback === "function") {
-              request.callback(prompt(typeof request.options.prefix != "undefined" ? request.options.prefix : (io.meta.prefixes.input || "")));
+              request.callback(prompt(typeof request.options.prefix != "undefined" ? request.options.prefix : (io.options.prefixes.input || "")));
             }
             JSterminal.ioQueue.tidyUp();
           },
           puts: function(request, io) {
-            console.log((typeof request.options.prefix != "undefined" ? request.options.prefix : (io.meta.prefixes.output || "")) + (request.data.output || ""));
-            io.meta.requestsQueue.shift();
+            console.log((typeof request.options.prefix != "undefined" ? request.options.prefix : (io.options.prefixes.output || "")) + (request.data.output || ""));
+            io.requestsQueue.shift();
             if (typeof request.callback === "function") {
               request.callback(request.data.output);
             }
@@ -166,25 +166,24 @@ var JSterminal = (function() {
     // Input/Output interface factory
     IO: function(opts) {
       var reserving = false,
-      m = {
-        prefixes: {
-          input: "&gt; ",
-          output: ""
+        defaultOptions = {
+          prefixes: {
+            input: "&gt; ",
+            output: ""
+          }
         },
-        requestsQueue: []
-      },
-      k;
-      for (k in opts) { if (opts.hasOwnProperty(k)) { m[k] = opts[k]; } }
+        k;
+      for (k in opts) { if (opts.hasOwnProperty(k)) { defaultOptions[k] = opts[k]; } }
       return {
         puts: function(out, callback, options) {
-          // Push a request for a puts action in the requestsQueue, make sure this IO interface is enqueued and go serving the next request
-          this.meta.requestsQueue.push({type: "puts", callback: callback, data: {output: out}, options: options || {}});
+          // Push a request for a 'puts' action in the requestsQueue, make sure this IO interface is enqueued and go serving the next request
+          this.requestsQueue.push({type: "puts", callback: callback, data: {output: out}, options: options || {}});
           this.enqueue();
           JSterminal.ioQueue.serveNext();
         },
         gets: function(callback, options) {
-          // Push a request for a gets action in the requestsQueue, make sure this IO interface is enqueued and go serving the next request
-          this.meta.requestsQueue.push({type: "gets", callback: callback, options: options || {}});
+          // Push a request for a 'gets' action in the requestsQueue, make sure this IO interface is enqueued and go serving the next request
+          this.requestsQueue.push({type: "gets", callback: callback, options: options || {}});
           this.enqueue();
           JSterminal.ioQueue.serveNext();
         },
@@ -209,10 +208,15 @@ var JSterminal = (function() {
         },
         flushAllRequests: function() {
           // Empty requestsQueue and release IO
-          this.meta.requestsQueue = [];
+          this.requestsQueue = [];
           this.checkout();
         },
-        meta: m
+        setOptions: function(options) {
+          var k;
+          for (k in options) { if (options.hasOwnProperty(k)) { this.options[k] = options[k]; } }
+        },
+        requestsQueue: [],
+        options: defaultOptions
       };
     }
   };

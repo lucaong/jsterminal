@@ -65,7 +65,13 @@ JSterminal.register("s", {
 Input/Output API
 ----------------
 
-In the `execute` function, you can get input and print output on the terminal making use of the API. JSterminal adds to each command an `io` object, on which you can call the `io.gets(...)` and `io.puts(...)` methods. These two functions work in an asynchronous fashion, so they both accept a callback. The specs are the followings:
+In the `execute` function, you can get input and print output on the terminal making use of the API. JSterminal assign to each command an `io` object, which represents an Input/Output interface. Its methods make it possible to reserve control of the input/output, to read user input and to write output to the terminal:
+
+`io.reserve()`
+  reserve control of the input/output. Always make sure you call this method before starting to make input/output requests with `io.puts(...)` or `io.gets(...)`.
+
+`io.checkout()`
+  release control of the input/output. If you reserved it with `io.reserve()`, don't forget to release it with `io.checkout()` when you are done, or subsequent command calls won't be able to read/write.
 
 `io.puts(outputString, [callback(outputString)], [options])`
   asynchronously writes `outputString` in the terminal, followed by a new line, and, once done, calls the `callback` function passing `outputString`.
@@ -73,7 +79,7 @@ In the `execute` function, you can get input and print output on the terminal ma
 `io.gets([callback(inputString)], [options])`
   asynchronously gets input from the user. Once the input is received, calls the `callback` function passing the input string.
 
-If you need to use input/output functions in your command, you need to reserve control of the input/output before and to release it when you are done. In order to do that, use `io.reserve()` and `io.checkout()`:
+As an example, see this 'hello' command:
 
 ```javascript
 JSterminal.register("hello", {

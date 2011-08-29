@@ -1,7 +1,7 @@
 // Mock IO handlers
 JSterminal.ioQueue.ioHandlers = {
   gets: function(request, io) {
-    io.meta.requestsQueue.shift();
+    io.requestsQueue.shift();
     if (typeof request.callback === "function") {
       request.callback("testinput");
     }
@@ -9,7 +9,7 @@ JSterminal.ioQueue.ioHandlers = {
   },
   puts: function(request, io) {
     $("#out").html($("#out").html() + request.data.output);
-    io.meta.requestsQueue.shift();
+    io.requestsQueue.shift();
     if (typeof request.callback === "function") {
       request.callback(request.data.output);
     }

@@ -132,10 +132,10 @@ JSterminal.register("gmail", {
 JSterminal.register("css", {
   description: "CSS console to add/edit page style",
   help: "start an interactive CSS console, making it possible to add CSS directive to the current page. Enter 'quit' or 'q' to quit the console.",
-  io: JSterminal.IO({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
+  //io: JSterminal.IO({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
   execute: function(argv){
-    var $css = this;
-    var io = $css.io;
+    var $css = this, io = $css.io;
+    io.setOptions({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } });
     $css.cache = $css.cache || "";
     $css.addStyle = function(css) {
       if (css != 'q' && css != 'quit' && css != 'Q') {
@@ -164,10 +164,10 @@ JSterminal.register("css", {
 JSterminal.register("js", {
   description: "JavaScript console",
   help: "start an interactive JavaScript console. Enter 'quit' or 'q' to quit the console.",
-  io: JSterminal.IO({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
+  //io: JSterminal.IO({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
   execute: function(argv) {
-    var $js = this;
-    var io = $js.io;
+    var $js = this, io = $js.io;
+    io.setOptions({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } });
     $js.globalEval = (function() {
       // globalEval code by kangax http://perfectionkills.com/global-eval-what-are-the-options/
       var isIndirectEvalGlobal = (function(original, Object) {
