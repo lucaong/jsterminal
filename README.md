@@ -73,7 +73,7 @@ In the `execute` function, you can get input and print output on the terminal ma
 `io.gets([callback(inputString)], [options])`
   asynchronously gets input from the user. Once the input is received, calls the `callback` function passing the input string.
 
-If you need to call more than one input/output functions, you need to reserve control of the input/output before and to release it after. In order to do that, use `io.reserve()` and `io.checkout()`:
+If you need to use input/output functions in your command, you need to reserve control of the input/output before and to release it when you are done. In order to do that, use `io.reserve()` and `io.checkout()`:
 
 ```javascript
 JSterminal.register("hello", {

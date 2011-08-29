@@ -235,3 +235,44 @@ JSterminal.register("js", {
   }
 });
 
+JSterminal.register("val", {
+  description: "validate markup of the current page",
+  help: "validate the current page's HTML or CSS using the W3C validator. By default it validates HTML, but you can use the --css flag to validate CSS.",
+  options: {
+    "--css": {
+      argument: false,
+      description: "validate CSS instead of HTML",
+      alias: "-css"
+    }
+  },
+  execute: function(argv, options) {
+    if (options["--css"]) {
+      window.open("http://validator.w3.org/check?uri="+encodeURI(location.href)+"&charset=%28detect+automatically%29&doctype=Inline&group=0");
+    } else {
+      window.open("http://jigsaw.w3.org/css-validator/validator?uri="+encodeURI(location.href)+"&profile=css21&usermedium=all&warning=1&vextwarning=&lang=en");
+    }
+  }
+});
+
+JSterminal.register("firebug", {
+  description: "open Firebug Lite",
+  help: "open Firebug Lite",
+  execute: function() {
+    var io = this.io;
+    (function(F,i,r,e,b,u,g,L,I,T,E) {
+      if(F.getElementById(b)) {
+        return;
+      }
+      E=F[i+'NS'] && F.documentElement.namespaceURI;
+      E=E ? F[i+'NS'](E,'script') : F[i]('script');
+      E[r]('id',b);
+      E[r]('src',I+g+T);
+      E[r](b,u);
+      (F[e]('head')[0] || F[e]('body')[0]).appendChild(E);
+      E=new Image;
+      E[r]('src',I+L);
+    })(document,'createElement','setAttribute','getElementsByTagName','FirebugLite','4','firebug-lite.js','releases/lite/latest/skin/xp/sprite.png','https://getfirebug.com/','#startOpened');
+    io.reserve();
+    io.puts("Starting Firebug Lite, this may take several seconds...", io.checkout);
+  }
+});
