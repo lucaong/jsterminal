@@ -1,6 +1,7 @@
 all: ./dist/jsterminal.js
 
 ./tmp/ui_skin.js : ./src/ui/ui.js ./src/ui/ui.html
+	mkdir -p ./tmp
 	ruby ./build/ui_skin.rb
 
 ./dist/jsterminal.js : ./src/core.js ./tmp/ui_skin.js ./src/basic_commands.js ./src/commands.js ./src/boot.js

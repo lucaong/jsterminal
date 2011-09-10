@@ -82,7 +82,7 @@ JSterminal.launch = function() {
     if (typeof JSterminal.terminalIO === "undefined") {
       JSterminal.terminalIO = JSterminal.IO({ prefixes: {input: "&gt; ", output: ""} });
     }
-    JSterminal.terminalIO.puts("JSterminal version 0.0.4\n"+(new Date()).toLocaleString());
+    JSterminal.terminalIO.puts("JSterminal version 0.0.5\n"+(new Date()).toLocaleString());
     jQuery("#JSterminal_in").focus();
   }
 };
