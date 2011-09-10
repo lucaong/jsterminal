@@ -132,10 +132,10 @@ JSterminal.register("gmail", {
 JSterminal.register("css", {
   description: "CSS console to add/edit page style",
   help: "start an interactive CSS console, making it possible to add CSS directive to the current page. Enter 'quit' or 'q' to quit the console.",
-  io: JSterminal.IO({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
+  //io: JSterminal.IO({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
   execute: function(argv){
-    var $css = this;
-    var io = $css.io;
+    var $css = this, io = $css.io;
+    io.setOptions({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } });
     $css.cache = $css.cache || "";
     $css.addStyle = function(css) {
       if (css != 'q' && css != 'quit' && css != 'Q') {
@@ -164,10 +164,10 @@ JSterminal.register("css", {
 JSterminal.register("js", {
   description: "JavaScript console",
   help: "start an interactive JavaScript console. Enter 'quit' or 'q' to quit the console.",
-  io: JSterminal.IO({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
+  //io: JSterminal.IO({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } }), // Store IO interface in the object, so that it survives multiple calls to execute()
   execute: function(argv) {
-    var $js = this;
-    var io = $js.io;
+    var $js = this, io = $js.io;
+    io.setOptions({ prefixes: { input: "&gt;&gt; ", output: "&gt;&gt; " } });
     $js.globalEval = (function() {
       // globalEval code by kangax http://perfectionkills.com/global-eval-what-are-the-options/
       var isIndirectEvalGlobal = (function(original, Object) {
@@ -235,3 +235,44 @@ JSterminal.register("js", {
   }
 });
 
+JSterminal.register("val", {
+  description: "validate markup of the current page",
+  help: "validate the current page's HTML or CSS using the W3C validator. By default it validates HTML, but you can use the --css flag to validate CSS.",
+  options: {
+    "--css": {
+      argument: false,
+      description: "validate CSS instead of HTML",
+      alias: "-css"
+    }
+  },
+  execute: function(argv, options) {
+    if (options["--css"]) {
+      window.open("http://validator.w3.org/check?uri="+encodeURI(location.href)+"&charset=%28detect+automatically%29&doctype=Inline&group=0");
+    } else {
+      window.open("http://jigsaw.w3.org/css-validator/validator?uri="+encodeURI(location.href)+"&profile=css21&usermedium=all&warning=1&vextwarning=&lang=en");
+    }
+  }
+});
+
+JSterminal.register("firebug", {
+  description: "open Firebug Lite",
+  help: "open Firebug Lite",
+  execute: function() {
+    var io = this.io;
+    (function(F,i,r,e,b,u,g,L,I,T,E) {
+      if(F.getElementById(b)) {
+        return;
+      }
+      E=F[i+'NS'] && F.documentElement.namespaceURI;
+      E=E ? F[i+'NS'](E,'script') : F[i]('script');
+      E[r]('id',b);
+      E[r]('src',I+g+T);
+      E[r](b,u);
+      (F[e]('head')[0] || F[e]('body')[0]).appendChild(E);
+      E=new Image;
+      E[r]('src',I+L);
+    })(document,'createElement','setAttribute','getElementsByTagName','FirebugLite','4','firebug-lite.js','releases/lite/latest/skin/xp/sprite.png','https://getfirebug.com/','#startOpened');
+    io.reserve();
+    io.puts("Starting Firebug Lite, this may take several seconds...", io.checkout);
+  }
+});

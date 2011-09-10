@@ -1,20 +1,20 @@
 // SKIN SPECIFIC CODE
 
-// Create JSterminal.eventHandlers namespace if they do not exist
+// Create JSterminal.eventHandlers namespace if it does not exist
 JSterminal.eventHandlers = JSterminal.eventHandlers || {};
 
 // Redefine IO handlers
 JSterminal.ioQueue.ioHandlers = {
   gets: function(request, io) {
-    jQuery("#JSterminal_in_prefix").html(typeof request.options.prefix != "undefined" ? request.options.prefix : (io.meta.prefixes.input || ""));
+    jQuery("#JSterminal_in_prefix").html(typeof request.options.prefix != "undefined" ? request.options.prefix : (io.options.prefixes.input || ""));
     jQuery("#JSterminal_in").width(jQuery("#JSterminal_in_wrap").width() - jQuery("#JSterminal_in_prefix").width() - 20);
   },
   puts: function(request, io) {
     var escapedOutput = jQuery("<div/>").text(request.data.output||"").html();
-    jQuery("#JSterminal_in_wrap").before("<span class=\"JSterminal_puts_prefix\">" + (typeof request.options.prefix != "undefined" ? request.options.prefix : (io.meta.prefixes.output || "")) + "</span><span class=\"JSterminal_puts_line\"" + (typeof request.options.style == "string" ? " style=\""+request.options.style+"\"" : "") + ">" + escapedOutput + "</span><br>");
+    jQuery("#JSterminal_in_wrap").before("<span class=\"JSterminal_puts_prefix\">" + (typeof request.options.prefix != "undefined" ? request.options.prefix : (io.options.prefixes.output || "")) + "</span><span class=\"JSterminal_puts_line\"" + (typeof request.options.style == "string" ? " style=\""+request.options.style+"\"" : "") + ">" + escapedOutput + "</span><br>");
     jQuery("#JSterminal_out").scrollTop(jQuery("#JSterminal_out").attr("scrollHeight"));
     jQuery("#JSterminal_in").focus();
-    io.meta.requestsQueue.shift();
+    io.requestsQueue.shift();
     if (typeof request.callback == "function") {
       request.callback(request.data.output);
     }
@@ -43,16 +43,16 @@ JSterminal.eventHandlers.keyPressed = function(e) {
   // Handle input in the right scope
   var io = JSterminal.ioQueue.first();
   // Initialize input log and cursor if necessary
-  io.meta.inputLog = (typeof io.meta.inputLog === "undefined") ? [] : io.meta.inputLog;
-  io.meta.inputLogCursor = (typeof io.meta.inputLogCursor !== "number") ? -1 : io.meta.inputLogCursor;
+  io.inputLog = (typeof io.inputLog === "undefined") ? [] : io.inputLog;
+  io.inputLogCursor = (typeof io.inputLogCursor !== "number") ? -1 : io.inputLogCursor;
   if(keycode === 13) { // Return key
     var i = jQuery("#JSterminal_in").val();
     jQuery("#JSterminal_in").val("");
-    io.meta.inputLog.unshift(i);
-    io.meta.inputLogCursor = -1;
-    var request = io.meta.requestsQueue[0];
+    io.inputLog.unshift(i);
+    io.inputLogCursor = -1;
+    var request = io.requestsQueue[0];
     if (!!request && request.type == "gets") {
-      io.meta.requestsQueue.shift().callback(i);
+      io.requestsQueue.shift().callback(i);
       JSterminal.ioQueue.tidyUp();
     }
   } else if (keycode === 27) { // Esc key
@@ -62,13 +62,13 @@ JSterminal.eventHandlers.keyPressed = function(e) {
         io.flushAllRequests();
       }
   } else if (keycode === 38) { // Up key
-    if(io.meta.inputLogCursor < io.meta.inputLog.length - 1) {
-      jQuery("#JSterminal_in").val(io.meta.inputLog[++io.meta.inputLogCursor]);
+    if(io.inputLogCursor < io.inputLog.length - 1) {
+      jQuery("#JSterminal_in").val(io.inputLog[++io.inputLogCursor]);
       return false; // Avoid placing the cursor at the beginning
     }
   } else if (keycode === 40) { // Down key
-    if(io.meta.inputLogCursor >= 0) {
-      jQuery("#JSterminal_in").val(io.meta.inputLog[--io.meta.inputLogCursor] || "");
+    if(io.inputLogCursor >= 0) {
+      jQuery("#JSterminal_in").val(io.inputLog[--io.inputLogCursor] || "");
     }
   }
 };
@@ -82,7 +82,7 @@ JSterminal.launch = function() {
     if (typeof JSterminal.terminalIO === "undefined") {
       JSterminal.terminalIO = JSterminal.IO({ prefixes: {input: "&gt; ", output: ""} });
     }
-    JSterminal.terminalIO.puts("JSterminal version 0.0.4\n"+(new Date()).toLocaleString());
+    JSterminal.terminalIO.puts("JSterminal version 0.0.5\n"+(new Date()).toLocaleString());
     jQuery("#JSterminal_in").focus();
   }
 };
@@ -90,7 +90,7 @@ JSterminal.launch = function() {
 JSterminal.quit = function() {
   JSterminal.terminalIO.checkout();
   JSterminal.ioQueue.empty();
-  JSterminal.terminalIO.meta.requestsQueue = [];
+  JSterminal.terminalIO.requestsQueue = [];
   jQuery("#JSterminal_container").remove();
 };
 
