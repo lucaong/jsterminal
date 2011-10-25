@@ -276,3 +276,22 @@ JSterminal.register("firebug", {
     io.puts("Starting Firebug Lite, this may take several seconds...", io.checkout);
   }
 });
+
+JSterminal.register("ril", {
+  description: "save on Read It Later",
+  help: "save the current URL on Read It Later, using the text passed as argument or the page title as the item's title.",
+  options: {
+    "-l": {
+      argument: false,
+      description: "open the reading list instead of saving a new item.",
+      alias: "--list"
+    }
+  },
+  execute: function(argv, options) {
+    if (!!options["-l"]) {
+      window.open("http://readitlaterlist.com/unread");
+    } else {
+      window.open("https://readitlaterlist.com/save?url="+location.href+"&title="+encodeURI(argv.join(" ") || document.title));
+    }
+  }
+});
